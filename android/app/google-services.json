@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "670564351875",
+    "project_id": "registro-colegio-ale",
+    "storage_bucket": "registro-colegio-ale.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:670564351875:android:6ce1248821820bad25c0b6",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5NsiOPJMZI8syiPkF4XZN9GHrU3z8LBU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
