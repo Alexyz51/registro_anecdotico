@@ -1,38 +1,51 @@
 import 'package:flutter/material.dart';
 
+//creo un widget con una barrita de navegacion tipo ruta
 class BreadcrumbBar extends StatelessWidget {
-  final List<BreadcrumbItem> items;
+  final List<BreadcrumbItem>
+  items; //Esta es una lista de los items que vas a mostrar en la barrita
 
-  const BreadcrumbBar({super.key, required this.items});
+  const BreadcrumbBar({
+    super.key,
+    required this.items,
+  }); //Paso los items obligatoriamente
 
   @override
   Widget build(BuildContext context) {
+    //La parte visual empieza aqui
     return Row(
+      //coloca los elemetos en una fila
       children: items.map((item) {
-        final isFirst = item == items.first;
-        final isLast = item == items.last;
+        //para recorrer el mapa
+        final esPrimero =
+            item == items.first; //es verdadero si es el primero de la lista
+        final esUltimo =
+            item == items.last; //es verdadero si es el ultimo de la lista
 
         // Si no es el último, puede ser clickeable
-        final isClickable = !isLast;
+        final esClikeable = !esUltimo;
 
-        // Color: gris para el primero y último, azul para el resto
-        final color = (isFirst || isLast) ? Colors.grey : Colors.blue;
+        // Color: gris para el primero y último, azul claro para el resto
+        final color = (esPrimero || esUltimo)
+            ? Colors.grey
+            : const Color.fromARGB(255, 227, 238, 247);
 
-        // Subrayado: solo si no es primero ni último
-        final decoration = (!isFirst && !isLast)
-            ? TextDecoration.underline
-            : TextDecoration.none;
-
+        //Aqui va la parte visual
         return Row(
+          //se ve el recorrido
           children: [
             GestureDetector(
-              onTap: isClickable ? item.onTap : null,
+              //Detecta el toque
+              onTap: esClikeable
+                  ? item.onTap
+                  : null, //si se puede hace click llama a la funcion onTap
               child: Text(
-                item.label,
-                style: TextStyle(color: color, decoration: decoration),
+                item.recorrido, //muestra el texto recorrido
+                style: TextStyle(color: color),
               ),
             ),
-            if (!isLast)
+            //Ahora esto agrega una flechita > si no es el ultimo en frete de cada palabra recorrida
+            if (!esUltimo)
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Icon(Icons.chevron_right, size: 16),
@@ -44,9 +57,13 @@ class BreadcrumbBar extends StatelessWidget {
   }
 }
 
+//la clase BreadcrumbItem
 class BreadcrumbItem {
-  final String label;
-  final VoidCallback? onTap;
+  final String recorrido; //es la cadena de Texto que representa el recorrido
+  final VoidCallback? onTap; //permite la navegacion si es clickeable
 
-  BreadcrumbItem({required this.label, this.onTap});
+  BreadcrumbItem({
+    required this.recorrido,
+    this.onTap,
+  }); //BreadcrumbItem es la clase que requiere del recorrido para hacer onTap
 }

@@ -10,31 +10,35 @@ class RegisterScreen extends StatefulWidget {
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-//controladores de los campor del formulario de registro
+//controladores de los campo del formulario de registro
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
-  //Text edit controller es una clase de flutter para controlar espacios completatables
+  final _claveDeFormulario = GlobalKey<FormState>();
+  //Text edit controller es una clase de flutter para controlar espacios completatables las declaro como final porque son constantes en tiempo de ejecuacion
   final TextEditingController nombre = TextEditingController();
   final TextEditingController apellido = TextEditingController();
   final TextEditingController correo = TextEditingController();
   final TextEditingController contrasenia = TextEditingController();
   final TextEditingController confirmarContrasenia = TextEditingController();
 
-  bool _cargaDeDatos = false;
+  bool _cargaDeDatos = false; // carga de datos empieza en false
 
   Future<void> registrarUsuario() async {
-    if (_formKey.currentState!.validate()) {
+    //depues de completar una vez que se toca regritrase empieza esta funcion
+    if (_claveDeFormulario.currentState!.validate()) {
+      //si el formulario esta completo ! y se validan los campor entonces
       setState(() {
-        _cargaDeDatos = true;
+        _cargaDeDatos =
+            true; //carga de datos empieza a mostrar un widget de progreso
       });
 
+      //Procesamos un poco lo datos ingresados
       final correoFinal = correo.text.trim().toLowerCase();
       final contraseniaFinal = contrasenia.text.trim();
       final nombreFinal = nombre.text.trim();
       final apellidoFinal = apellido.text.trim();
 
       try {
-        // Crear el usuario en Firebase Authentication
+        // intentamos crear el usuario en Firebase Authentication
         final UserCredential credenciales = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
               email: correoFinal,
@@ -51,37 +55,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'rol': 'usuario',
         });
 
-        // Redirigir al login
+        // Redirigir al login remplazando la pantalla actual
         Navigator.pushReplacementNamed(
           context,
           'login',
         ); //o sino hay un error y hay tres casos
       } on FirebaseAuthException catch (e) {
-        String errorMessage = 'Ocurrió un error';
+        String mensajeDeError = 'Ocurrió un error';
         if (e.code == 'email-already-in-use') {
-          errorMessage = 'El correo ya está en uso.';
+          mensajeDeError = 'El correo ya está en uso.';
         } else if (e.code == 'weak-password') {
-          errorMessage = 'La contraseña es muy débil.';
+          mensajeDeError = 'La contraseña es muy débil.';
         } else if (e.code == 'invalid-email') {
-          errorMessage = 'Correo inválido.';
+          mensajeDeError = 'Correo inválido.';
         }
 
         //otros posibles errores que se capturan
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+        ).showSnackBar(SnackBar(content: Text(mensajeDeError)));
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error al registrar usuario')),
         );
       } finally {
         setState(() {
-          _cargaDeDatos = false; // sino carga completada
+          _cargaDeDatos = false; // una vez que este proceso termina se apaga
         });
       }
     }
   }
 
+  //se empieza a construir la interfaz grafica casi igual que en login screen si algo no es igual comento
   @override
   Widget build(BuildContext context) {
     const azulGrisClaro = Color.fromARGB(255, 175, 183, 197);
@@ -117,7 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       vertical: 16,
                     ),
                     child: Form(
-                      key: _formKey,
+                      key: _claveDeFormulario,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -131,6 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 20),
                           TextFormField(
+                            //en este texFormField el usurio ingresa su nombre y dsp lo mismo que en login
                             controller: nombre,
                             decoration: const InputDecoration(
                               labelText: 'Nombre',
@@ -139,15 +145,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             validator: (value) =>
                                 value!.isEmpty ? 'Ingresa tu nombre' : null,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 16), // espacio
                           TextFormField(
+                            //en este texFormField el usurio ingresa su apellido y dsp lo mismo que en login
                             controller: apellido,
                             decoration: const InputDecoration(
                               labelText: 'Apellido',
                               border: OutlineInputBorder(),
                             ),
-                            validator: (value) =>
-                                value!.isEmpty ? 'Ingresa tu apellido' : null,
+                            validator:
+                                (
+                                  value,
+                                ) => //verificamos que el field no este vacio si esta vacio ingrese su apellido sino null
+                                value!.isEmpty
+                                ? 'Ingresa tu apellido'
+                                : null,
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
@@ -179,7 +191,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ? 'Mínimo 6 caracteres'
                                 : null,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 16), //espacio
                           TextFormField(
                             controller: confirmarContrasenia,
                             decoration: const InputDecoration(
@@ -187,8 +199,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               border: OutlineInputBorder(),
                             ),
                             obscureText: true,
-                            validator: (value) =>
-                                value != confirmarContrasenia.text
+                            validator: (value) => value != contrasenia.text
+                                //evaluamos que lo ingresado en el campo de confirmecion se igual  la contraseña
                                 ? 'Las contraseñas no coinciden'
                                 : null,
                           ),
@@ -196,6 +208,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _cargaDeDatos
                               ? const CircularProgressIndicator()
                               : ElevatedButton(
+                                  //si todo esta bien se puede registrar sin problema
                                   onPressed: registrarUsuario,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: azulGrisClaro,

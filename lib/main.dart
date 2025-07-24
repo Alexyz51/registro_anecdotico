@@ -5,6 +5,8 @@ import 'package:registro_anecdotico/src/pages/start_of_all/login_screen.dart';
 import 'package:registro_anecdotico/src/pages/start_of_all/register_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
 import 'package:registro_anecdotico/src/pages/common_user/common_user_home_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/edit_list_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/users_list_screen.dart';
 
 // Importaciones de Firebase
 import 'package:firebase_core/firebase_core.dart';
@@ -44,6 +46,8 @@ class MyApp extends StatelessWidget {
         "register": (context) => const RegisterScreen(),
         "user_home": (context) => const CommonUserHomeScreen(),
         "admin_home": (context) => const AdminUserHomeScreen(),
+        "edit_list": (context) => const EditListScreen(),
+        "users_list": (context) => const UserListScreen(),
       },
     );
   }

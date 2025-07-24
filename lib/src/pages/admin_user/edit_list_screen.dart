@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csv/csv.dart';
+import 'package:registro_anecdotico/src/pages/widgets/breadcrumb_navigation.dart';
 
 class EditListScreen extends StatefulWidget {
   const EditListScreen({super.key});
@@ -370,7 +371,20 @@ class _EditListScreenState extends State<EditListScreen> {
         ),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          BreadcrumbBar(
+            items: [
+              BreadcrumbItem(
+                recorrido: 'Inicio',
+                onTap: () {
+                  Navigator.pushNamed(context, '/');
+                },
+              ),
+              BreadcrumbItem(recorrido: 'Editar lista'),
+            ],
+          ),
+          const SizedBox(height: 10),
           // Botones de acción
           Padding(
             padding: const EdgeInsets.all(8.0),
