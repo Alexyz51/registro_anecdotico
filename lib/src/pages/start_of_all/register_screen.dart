@@ -89,14 +89,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   //se empieza a construir la interfaz grafica casi igual que en login screen si algo no es igual comento
   @override
   Widget build(BuildContext context) {
-    const azulGrisClaro = Color.fromARGB(255, 175, 183, 197);
+    String hexColor = '#8e0b13';
+    // Convierte la cadena hexadecimal a un entero, omitiendo el '#'
+    int colorValue = int.parse(hexColor.substring(1), radix: 16);
+
+    // Crea un objeto Color con el valor entero
+    Color miColor = Color(
+      colorValue | 0xFF000000,
+    ); // Agrega el canal alfa (FF para opaco)
+    const cremita = Color.fromARGB(255, 250, 235, 231);
+    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEFEFEF),
+      backgroundColor: miColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        leading: BackButton(color: Colors.black),
+        leading: BackButton(color: Color.fromARGB(255, 39, 2, 2)),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -104,14 +113,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                'assets/book.png', // Cambiar si el nombre es otro
-                height: 100,
+              Text(
+                'Registro Anecdótico',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: cremita,
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 350),
                 child: Card(
+                  color: cremita,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -127,11 +141,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Registro Anecdótico',
+                            'Registrarse',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: azulGrisClaro,
+                              color: rojoOscuro,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -211,13 +225,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   //si todo esta bien se puede registrar sin problema
                                   onPressed: registrarUsuario,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: azulGrisClaro,
+                                    backgroundColor: miColor,
                                     minimumSize: const Size.fromHeight(48),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  child: const Text('Registrarse'),
+                                  child: const Text(
+                                    'Registrarse',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: cremita,
+                                    ),
+                                  ),
                                 ),
                           const SizedBox(height: 12),
                           TextButton(
@@ -226,6 +246,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                             child: const Text(
                               '¿Ya tienes cuenta? Inicia sesión aquí',
+                              style: TextStyle(color: rojoOscuro),
                             ),
                           ),
                         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:registro_anecdotico/src/pages/start_of_all/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -104,17 +105,26 @@ class _LoginScreenState extends State<LoginScreen> {
   // se empieza a construir la interfaz grafica es una estrutura basica de flutter que devuelve un widget que renderiza
   @override
   Widget build(BuildContext context) {
-    //Color a usar en algunas cosas
-    const azulGrisClaro = Color.fromARGB(255, 175, 183, 197);
-    //retorna una estructura endonde puedo poner bottons, cards,appbars,etc
+    String hexColor = '#8e0b13';
+    // Convierte la cadena hexadecimal a un entero, omitiendo el '#'
+    int colorValue = int.parse(hexColor.substring(1), radix: 16);
+
+    // Crea un objeto Color con el valor entero
+    Color miColor = Color(
+      colorValue | 0xFF000000,
+    ); // Agrega el canal alfa (FF para opaco)
     return Scaffold(
       //color de fondo
-      backgroundColor: const Color(0xFFEFEFEF),
+      backgroundColor: miColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
         leading: BackButton(
-          color: Colors.black,
+          color: Color.fromARGB(255, 39, 2, 2),
+          onPressed: () => Navigator.pop(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          ),
         ), //boton para ir a inicio o home_screen
       ),
       body: Center(
@@ -129,17 +139,25 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisSize:
                 MainAxisSize.min, //la columna ocupara solo lo necesario
             children: [
-              Image.asset(
-                'assets/book.png',
-                height: 100,
-              ), //imagen que viene antes de los campos
+              Image.asset('assets/book.png', height: 100),
+              //imagen que viene antes de los campos
               const SizedBox(height: 16), // distancia de 16 pixeles
+              Text(
+                '¡BIENVENIDO!',
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.w900,
+                  color: Color.fromARGB(255, 250, 235, 231),
+                ),
+              ),
+              const SizedBox(height: 16),
               ConstrainedBox(
                 constraints: const BoxConstraints(
                   maxWidth: 350,
                 ), //limita el ancho en 350 px
                 child: Card(
                   // crea la tarjeta ocard
+                  color: Color.fromARGB(255, 250, 235, 231),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -158,11 +176,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Registro Anecdótico', // titulo
+                            'Iniciar sesión', // titulo
                             style: TextStyle(
                               fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: azulGrisClaro,
+                              fontWeight: FontWeight.w900,
+                              color: Color.fromARGB(255, 39, 2, 2),
                             ),
                           ),
                           const SizedBox(height: 20), //espacio
@@ -170,6 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller:
                                 correo, // controller es un propiedad del widget textformfield y
                             decoration: const InputDecoration(
+                              iconColor: Color.fromARGB(255, 39, 2, 2),
                               labelText:
                                   "Correo electrónico", //muestra correo electronico en el centro y luego en el borde
                               border: OutlineInputBorder(),
@@ -199,10 +218,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             obscureText:
                                 true, // Oculta el texto para que no se vea la contraseña (muestra puntos)
                             decoration: const InputDecoration(
-                              labelText:
-                                  "Contraseña", // Texto que aparece como etiqueta dentro del campo
-                              border:
-                                  OutlineInputBorder(), // Bordes visibles alrededor del campo
+                              labelText: "Contraseña",
+                              /*fillColor: Color.fromRGBO(210, 195, 172, 1),
+                              filled:
+                                  true, // Texto que aparece como etiqueta dentro del campo*/
+                              border: OutlineInputBorder(
+                                /*borderRadius: BorderRadius.all(
+                                  Radius.circular(0.0),
+                                ),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: Colors.blue,
+                                ),*/
+                              ), // Bordes visibles alrededor del campo
                             ),
                             validator: (valor) {
                               // Función que valida el texto ingresado
@@ -218,13 +246,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               : ElevatedButton(
                                   onPressed: iniciarSesion,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: azulGrisClaro,
+                                    backgroundColor: miColor,
+
                                     minimumSize: const Size.fromHeight(48),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  child: const Text("Ingresar"),
+                                  child: const Text(
+                                    "Ingresar",
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 250, 235, 231),
+                                    ),
+                                  ),
                                 ),
                           const SizedBox(height: 12), // espacio
                           TextButton(
@@ -236,7 +270,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                             child: Text(
                               "¿No tienes cuenta? Regístrate aquí", //texto que se ve en el boton
-                              style: TextStyle(color: azulGrisClaro),
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 39, 2, 2),
+                              ),
                             ),
                           ),
                         ],

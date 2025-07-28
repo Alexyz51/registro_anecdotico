@@ -1,9 +1,22 @@
-import 'dart:convert';
+import 'dart:convert'; //Para convertir bytes en texto (utf8.decode)
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_picker/file_picker.dart'; // Para permitir al usuario seleccionar archivos desde su dispositivo
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:csv/csv.dart';
+import 'package:csv/csv.dart'; //Para convertir archivos .csv en listas legibles por el programa
 import 'package:registro_anecdotico/src/pages/widgets/breadcrumb_navigation.dart';
+import 'package:diacritic/diacritic.dart'; //Para quitar acentos y cosas de ortogrfia correcta
+
+// Definicion de las varibles permitidas
+final nivelesPermitidos = ['escolar basica', 'nivel medio'];
+final gradosEscolarBasica = ['7', '8', '9']; // Séptimo, octavo, noveno
+final gradosNivelMedio = ['1', '2', '3']; // Primero, segundo, tercero
+final seccionesEscolarBasica = ['a', 'b'];
+final seccionesNivelMedio = ['ciencias basicas', 'informatica'];
+
+// Función para normalizar texto normalizar con el paquete de diacritic
+String normalizar(String s) {
+  return removeDiacritics(s.trim().toLowerCase());
+}
 
 class EditListScreen extends StatefulWidget {
   const EditListScreen({super.key});
@@ -13,50 +26,65 @@ class EditListScreen extends StatefulWidget {
 }
 
 class _EditListScreenState extends State<EditListScreen> {
-  // Estructura para guardar alumnos organizados: Nivel -> Grado -> Sección -> Lista de alumnos
-  Map<String, Map<String, Map<String, List<Map<String, dynamic>>>>> data = {};
-  bool loading = true;
+  //Estructura tipo arbol donde seguardaran los datos
+  Map<String, Map<String, Map<String, List<Map<String, dynamic>>>>> datos = {};
+  bool cargando = true; // variable para indicar la carga de datos
 
   @override
   void initState() {
+    //estado inicial de la pantalla
     super.initState();
-    _loadData();
+    _cargaDeDatos(); //en el estado inicial empieza la carga de datos para llamar a la base de datos e iniciar
   }
 
-  // Carga datos desde Firestore y organiza en el mapa 'data'
-  Future<void> _loadData() async {
+  Future<void> _cargaDeDatos() async {
+    //metodo de carga de datos
     setState(() {
-      loading = true;
+      cargando = true; //empieza a cargar
     });
 
-    final snapshot = await FirebaseFirestore.instance
+    // Obtener copiainstantánea (snapshot) o fotos de todos los documentos de 'students'
+    final copiaInstantanea = await FirebaseFirestore.instance
         .collection('students')
         .get();
 
-    final tempData =
+    //Datos temporales obtenidos listos para ordenar
+    final datosTemp =
         <String, Map<String, Map<String, List<Map<String, dynamic>>>>>{};
 
-    for (var doc in snapshot.docs) {
-      final d = doc.data();
-      final nivel = d['nivel'] ?? 'Sin nivel';
-      final grado = d['grado'] ?? 'Sin grado';
-      final seccion = d['seccion'] ?? 'Sin sección';
+    for (var doc in copiaInstantanea.docs) {
+      //para cada documento una foto
+      final d = doc.data(); //toda la info del documento
+      final nivel =
+          d['nivel'] ?? 'Sin nivel'; //se obtiene el nivel sino sin nivel
+      final grado =
+          d['grado'] ?? 'Sin grado'; //se obtiene el grado sino sin grado
+      final seccion =
+          d['seccion'] ??
+          'Sin sección'; //se obtiene la seccion sino sin seccion
 
-      tempData.putIfAbsent(nivel, () => {});
-      tempData[nivel]!.putIfAbsent(grado, () => {});
-      tempData[nivel]![grado]!.putIfAbsent(seccion, () => []);
+      // Estructura: nivel → grado → sección → lista de alumnos
+      datosTemp.putIfAbsent(nivel, () => {});
+      datosTemp[nivel]!.putIfAbsent(grado, () => {});
+      datosTemp[nivel]![grado]!.putIfAbsent(
+        seccion,
+        () => [],
+      ); //crea un lugar para los datos del alumno
 
+      // Copiar datos del alumno y agregar ID del documento para facilitar borrar
       Map<String, dynamic> alumnoConId = Map<String, dynamic>.from(d);
       alumnoConId['docId'] = doc.id;
 
-      tempData[nivel]![grado]![seccion]!.add(alumnoConId);
+      // Añade al alumno a la lista correspondiente
+      datosTemp[nivel]![grado]![seccion]!.add(alumnoConId);
     }
 
-    // Ordenar niveles, grados y secciones
-    tempData.forEach((nivel, grados) {
+    // Ordenar niveles, grados y secciones para que la UI tenga un orden lógico
+    datosTemp.forEach((nivel, grados) {
       var gradosList = grados.keys.toList();
-      if (nivel == 'Nivel Medio') {
+      if (nivel == 'nivel medio') {
         gradosList.sort((a, b) {
+          // Ordena grados numéricamente si es nivel medio
           int? aNum = int.tryParse(a);
           int? bNum = int.tryParse(b);
           if (aNum != null && bNum != null) {
@@ -65,7 +93,7 @@ class _EditListScreenState extends State<EditListScreen> {
           return a.compareTo(b);
         });
       } else {
-        gradosList.sort();
+        gradosList.sort(); // Alfabético para otros niveles
       }
 
       final gradosOrdenadosMap =
@@ -74,10 +102,10 @@ class _EditListScreenState extends State<EditListScreen> {
         final secciones = grados[grado]!;
 
         List<String> seccionesOrdenadas = secciones.keys.toList();
-        if (nivel == 'Nivel Medio') {
+        if (nivel == 'nivel medio') {
           seccionesOrdenadas.sort((a, b) {
-            if (a == 'A') return -1;
-            if (b == 'A') return 1;
+            if (a == 'a') return -1;
+            if (b == 'a') return 1;
             return a.compareTo(b);
           });
         } else {
@@ -88,7 +116,6 @@ class _EditListScreenState extends State<EditListScreen> {
         for (var sec in seccionesOrdenadas) {
           final alumnos = secciones[sec]!;
 
-          // Ordenar alumnos por número de lista
           alumnos.sort(
             (a, b) =>
                 (a['numero_lista'] as int).compareTo(b['numero_lista'] as int),
@@ -97,25 +124,23 @@ class _EditListScreenState extends State<EditListScreen> {
         }
         gradosOrdenadosMap[grado] = seccionesOrdenadasMap;
       }
-      tempData[nivel] = gradosOrdenadosMap;
+      datosTemp[nivel] = gradosOrdenadosMap;
     });
 
     setState(() {
-      data = tempData;
-      loading = false;
+      datos = datosTemp;
+      cargando = false;
     });
   }
 
-  // Reorganiza los números de lista para un nivel, grado y sección (consecutivos desde 1)
   Future<void> _reorganizarNumeroLista(
     String nivel,
     String grado,
     String seccion,
   ) async {
-    final alumnos = data[nivel]?[grado]?[seccion];
+    final alumnos = datos[nivel]?[grado]?[seccion];
     if (alumnos == null) return;
 
-    // Ordenar localmente para asegurar secuencia
     alumnos.sort(
       (a, b) => (a['numero_lista'] as int).compareTo(b['numero_lista'] as int),
     );
@@ -136,11 +161,9 @@ class _EditListScreenState extends State<EditListScreen> {
 
     await batch.commit();
 
-    // Refrescar datos y UI
-    await _loadData();
+    await _cargaDeDatos();
   }
 
-  // Agrega un alumno asignando automáticamente el número de lista al final
   Future<void> _agregarAlumnoAuto({
     required String nombre,
     required String apellido,
@@ -149,7 +172,7 @@ class _EditListScreenState extends State<EditListScreen> {
     required String nivel,
     required int anio,
   }) async {
-    final alumnos = data[nivel]?[grado]?[seccion] ?? [];
+    final alumnos = datos[nivel]?[grado]?[seccion] ?? [];
     final nuevoNumeroLista = alumnos.length + 1;
 
     await FirebaseFirestore.instance.collection('students').add({
@@ -162,97 +185,171 @@ class _EditListScreenState extends State<EditListScreen> {
       'anio': anio,
     });
 
-    await _loadData();
+    await _cargaDeDatos();
   }
 
-  // Diálogo para agregar alumno (sin número lista, se asigna automático)
   Future<void> _showAddAlumnoDialog() async {
     final _formKey = GlobalKey<FormState>();
     String nombre = '';
     String apellido = '';
-    String grado = '';
-    String seccion = '';
-    String nivel = '';
-    int anio = 0;
+    String? nivel;
+    String? grado;
+    String? seccion;
+    int? anio;
+
+    List<String> gradosDisponibles = [];
+    List<String> seccionesDisponibles = [];
 
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Agregar alumno'),
-        content: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Nombre'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                  onSaved: (v) => nombre = v!.trim(),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            // Actualizar listas según nivel seleccionado
+            if (nivel == 'escolar basica') {
+              gradosDisponibles = gradosEscolarBasica;
+              seccionesDisponibles = seccionesEscolarBasica;
+            } else if (nivel == 'nivel medio') {
+              gradosDisponibles = gradosNivelMedio;
+              seccionesDisponibles = seccionesNivelMedio;
+            } else {
+              gradosDisponibles = [];
+              seccionesDisponibles = [];
+            }
+
+            return AlertDialog(
+              title: const Text('Agregar alumno'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: 'Nombre'),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Requerido' : null,
+                        onSaved: (v) => nombre = v!.trim(),
+                      ),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Apellido',
+                        ),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Requerido' : null,
+                        onSaved: (v) => apellido = v!.trim(),
+                      ),
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(labelText: 'Nivel'),
+                        items: nivelesPermitidos
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e,
+                                child: Text(
+                                  e[0].toUpperCase() + e.substring(1),
+                                ), // Capitalizar
+                              ),
+                            )
+                            .toList(),
+                        value: nivel,
+                        onChanged: (val) {
+                          setStateDialog(() {
+                            nivel = val;
+                            grado = null;
+                            seccion = null;
+                          });
+                        },
+                        validator: (v) => v == null ? 'Requerido' : null,
+                        onSaved: (v) => nivel = v,
+                      ),
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(labelText: 'Grado'),
+                        items: gradosDisponibles
+                            .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)),
+                            )
+                            .toList(),
+                        value: grado,
+                        onChanged: (val) {
+                          setStateDialog(() {
+                            grado = val;
+                          });
+                        },
+                        validator: (v) => v == null ? 'Requerido' : null,
+                        onSaved: (v) => grado = v,
+                      ),
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(labelText: 'Sección'),
+                        items: seccionesDisponibles
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e,
+                                child: Text(
+                                  e[0].toUpperCase() + e.substring(1),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        value: seccion,
+                        onChanged: (val) {
+                          setStateDialog(() {
+                            seccion = val;
+                          });
+                        },
+                        validator: (v) => v == null ? 'Requerido' : null,
+                        onSaved: (v) => seccion = v,
+                      ),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: 'Año'),
+                        keyboardType: TextInputType.number,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Requerido';
+                          if (int.tryParse(v) == null)
+                            return 'Debe ser un número';
+                          return null;
+                        },
+                        onSaved: (v) => anio = int.parse(v!),
+                      ),
+                    ],
+                  ),
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Apellido'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                  onSaved: (v) => apellido = v!.trim(),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Grado'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                  onSaved: (v) => grado = v!.trim(),
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Sección'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                  onSaved: (v) => seccion = v!.trim(),
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Nivel'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                  onSaved: (v) => nivel = v!.trim(),
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Año'),
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Requerido';
-                    if (int.tryParse(v) == null) return 'Debe ser un número';
-                    return null;
+                TextButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+
+                      // Normalizar para guardar en Firestore
+                      final nivelNorm = normalizar(nivel!);
+                      final gradoNorm = normalizar(grado!);
+                      final seccionNorm = normalizar(seccion!);
+
+                      await _agregarAlumnoAuto(
+                        nombre: nombre,
+                        apellido: apellido,
+                        grado: gradoNorm,
+                        seccion: seccionNorm,
+                        nivel: nivelNorm,
+                        anio: anio!,
+                      );
+
+                      Navigator.pop(context);
+                    }
                   },
-                  onSaved: (v) => anio = int.parse(v!),
+                  child: const Text('Guardar'),
                 ),
               ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-
-                await _agregarAlumnoAuto(
-                  nombre: nombre,
-                  apellido: apellido,
-                  grado: grado,
-                  seccion: seccion,
-                  nivel: nivel,
-                  anio: anio,
-                );
-
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
-  // Elimina un alumno y reorganiza el número de lista automáticamente
   Future<void> _deleteAlumno(String docId) async {
     bool confirm = await showDialog(
       context: context,
@@ -289,13 +386,12 @@ class _EditListScreenState extends State<EditListScreen> {
           .doc(docId)
           .delete();
 
-      await _loadData();
+      await _cargaDeDatos();
       await _reorganizarNumeroLista(nivel, grado, seccion);
     }
   }
 
-  // Borra toda la colección de alumnos
-  Future<void> _deleteAllAlumnos() async {
+  Future<void> _borrarTodosLosAlumnos() async {
     bool confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -329,11 +425,10 @@ class _EditListScreenState extends State<EditListScreen> {
 
       await batch.commit();
 
-      await _loadData();
+      await _cargaDeDatos();
     }
   }
 
-  // Importar CSV (igual que antes, puede llamar _loadData después de importar)
   Future<void> _showImportCsvDialog() async {
     await showDialog(
       context: context,
@@ -344,7 +439,7 @@ class _EditListScreenState extends State<EditListScreen> {
           child: CsvImportWidget(
             onImportCompleted: () {
               Navigator.pop(context);
-              _loadData();
+              _cargaDeDatos();
             },
           ),
         ),
@@ -360,7 +455,7 @@ class _EditListScreenState extends State<EditListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Center(child: CircularProgressIndicator());
+    if (cargando) return const Center(child: CircularProgressIndicator());
 
     return Scaffold(
       appBar: AppBar(
@@ -385,7 +480,6 @@ class _EditListScreenState extends State<EditListScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          // Botones de acción
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -406,27 +500,26 @@ class _EditListScreenState extends State<EditListScreen> {
                   icon: const Icon(Icons.delete_forever),
                   label: const Text('Borrar todo'),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: _deleteAllAlumnos,
+                  onPressed: _borrarTodosLosAlumnos,
                 ),
               ],
             ),
           ),
-          // Lista organizada de alumnos
           Expanded(
             child: ListView(
-              children: data.entries.map((nivelEntry) {
+              children: datos.entries.map((nivelEntry) {
                 final nivel = nivelEntry.key;
                 final grados = nivelEntry.value;
 
                 return ExpansionTile(
-                  title: Text(nivel),
+                  title: Text(nivel[0].toUpperCase() + nivel.substring(1)),
                   children: grados.entries.map((gradoEntry) {
                     final grado = gradoEntry.key;
                     final secciones = gradoEntry.value;
 
                     return ExpansionTile(
                       title: Text(
-                        nivel == 'Nivel Medio'
+                        nivel == 'nivel medio'
                             ? '$grado curso'
                             : 'Grado: $grado',
                       ),
@@ -435,7 +528,9 @@ class _EditListScreenState extends State<EditListScreen> {
                         final alumnos = seccionEntry.value;
 
                         return ExpansionTile(
-                          title: Text('Sección: $seccion'),
+                          title: Text(
+                            'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
+                          ),
                           children: alumnos.map((alumno) {
                             return ListTile(
                               title: Text(
@@ -464,7 +559,6 @@ class _EditListScreenState extends State<EditListScreen> {
   }
 }
 
-/// Widget para importar CSV
 class CsvImportWidget extends StatefulWidget {
   final VoidCallback onImportCompleted;
 
@@ -518,19 +612,43 @@ class _CsvImportWidgetState extends State<CsvImportWidget> {
       }
 
       int count = 0;
-      // Asumiendo que la fila 0 es encabezado
       for (int i = 1; i < fields.length; i++) {
         final row = fields[i];
         if (row.length < 7) continue;
 
+        final nombre = row[0].toString().trim();
+        final apellido = row[1].toString().trim();
+        final seccionRaw = row[2].toString();
+        final nivelRaw = row[3].toString();
+        final gradoRaw = row[4].toString();
+        final numeroListaRaw = row[5].toString();
+        final anioRaw = row[6].toString();
+
+        final nivel = normalizar(nivelRaw);
+        final grado = normalizar(gradoRaw);
+        final seccion = normalizar(seccionRaw);
+        final numeroLista = int.tryParse(numeroListaRaw) ?? 0;
+        final anio = int.tryParse(anioRaw) ?? 0;
+
+        if (!nivelesPermitidos.contains(nivel)) continue;
+        if (nivel == 'escolar basica' && !gradosEscolarBasica.contains(grado))
+          continue;
+        if (nivel == 'nivel medio' && !gradosNivelMedio.contains(grado))
+          continue;
+        if (nivel == 'escolar basica' &&
+            !seccionesEscolarBasica.contains(seccion))
+          continue;
+        if (nivel == 'nivel medio' && !seccionesNivelMedio.contains(seccion))
+          continue;
+
         final data = {
-          'nombre': row[0].toString(),
-          'apellido': row[1].toString(),
-          'grado': row[2].toString(),
-          'seccion': row[3].toString(),
-          'anio': int.tryParse(row[4].toString()) ?? 0,
-          'numero_lista': int.tryParse(row[5].toString()) ?? 0,
-          'nivel': row[6].toString(),
+          'nombre': nombre,
+          'apellido': apellido,
+          'grado': grado,
+          'seccion': seccion,
+          'anio': anio,
+          'numero_lista': numeroLista,
+          'nivel': nivel,
         };
 
         await FirebaseFirestore.instance.collection('students').add(data);
@@ -539,15 +657,15 @@ class _CsvImportWidgetState extends State<CsvImportWidget> {
 
       setState(() {
         _isLoading = false;
+        _message = 'Importados $count alumnos.';
         _importedCount = count;
-        _message = 'Se importaron correctamente $count alumnos.';
       });
 
       widget.onImportCompleted();
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _message = 'Error durante la importación: $e';
+        _message = 'Error al importar CSV: $e';
       });
     }
   }
@@ -556,14 +674,15 @@ class _CsvImportWidgetState extends State<CsvImportWidget> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ElevatedButton(
-          onPressed: _isLoading ? null : _pickAndUploadCsv,
-          child: const Text('Seleccionar archivo CSV'),
-        ),
-        const SizedBox(height: 20),
-        if (_isLoading) const CircularProgressIndicator(),
-        if (_message != null) Text(_message!),
-        if (_importedCount > 0) Text('Total importados: $_importedCount'),
+        if (_isLoading)
+          const CircularProgressIndicator()
+        else
+          ElevatedButton.icon(
+            icon: const Icon(Icons.upload_file),
+            label: const Text('Seleccionar archivo CSV'),
+            onPressed: _pickAndUploadCsv,
+          ),
+        if (_message != null) ...[const SizedBox(height: 10), Text(_message!)],
       ],
     );
   }

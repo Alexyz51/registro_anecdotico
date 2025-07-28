@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // Scaffold es una estructura básica de una pantalla en Flutter, como en HTML
     return Scaffold(
       // Color de fondo
-      backgroundColor: Colors.white,
+      backgroundColor: Color.fromARGB(255, 168, 21, 21),
       // En este caso solo haré el cuerpo sin título ni nada
       body: Center(
         // Organizo los elementos de un hijo en forma vertical con Column
@@ -47,37 +47,11 @@ class _SplashScreenState extends State<SplashScreen> {
             Image(
               image: AssetImage("assets/book.png"),
               // Ajusto el tamaño (ancho y altura) de la imagen
-              width: 150,
-              height: 150,
+              width: 250,
+              height: 250,
             ),
             // Espacio vertical en pixeles para separar la imagen del texto
-            SizedBox(height: 20),
-
-            // Texto que es el nombre de la app
-            Text(
-              "Registro Anecdótico",
-              //Defino como se ve el texto
-              style: TextStyle(
-                fontSize: 24, //tamaño del texto
-                fontWeight: FontWeight.bold, //Negrita
-                color: Color.fromARGB(
-                  255,
-                  175,
-                  183,
-                  197,
-                ), // Color igual al ícono
-              ),
-              textAlign: TextAlign.center, //centra el texto bueno si lgmt
-            ),
-
-            // Otro espacio
-            SizedBox(height: 30),
-
-            // Indicador de carga (loader circular) que esta en material.dart offical de flutter o sea es por defecto de flutter
-            CircularProgressIndicator(
-              //defino el color
-              color: Color.fromARGB(255, 175, 183, 197),
-            ),
+            SizedBox(height: 0),
           ],
         ),
       ),
