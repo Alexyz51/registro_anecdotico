@@ -53,8 +53,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'apellido': apellidoFinal,
           'correo': correoFinal,
           'rol': 'usuario',
+          'primerInicio': true, //dato que utilizare para un widget me ahhhhh
         });
-
         // Redirigir al login remplazando la pantalla actual
         Navigator.pushReplacementNamed(
           context,
