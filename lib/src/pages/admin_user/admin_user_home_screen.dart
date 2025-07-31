@@ -194,6 +194,59 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
                   Navigator.pushNamed(context, 'users_list');
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Cerrar sesión'),
+                onTap: () async {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.of(
+                    context,
+                  ).pushReplacementNamed('login'); // o tu ruta de login
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_forever, color: Colors.red),
+                title: const Text('Borrar cuenta'),
+                onTap: () async {
+                  bool confirm = await showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Confirmar eliminación'),
+                      content: const Text(
+                        '¿Estás seguro de que quieres borrar tu cuenta? Esta acción no se puede deshacer.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancelar'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text(
+                            'Borrar',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm) {
+                    try {
+                      await FirebaseAuth.instance.currentUser!.delete();
+                      Navigator.of(context).pushReplacementNamed('login');
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'No se pudo borrar la cuenta. Intenta cerrar sesión e iniciar nuevamente.',
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
             ],
           ),
         ),
