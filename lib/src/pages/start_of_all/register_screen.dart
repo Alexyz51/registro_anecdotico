@@ -53,6 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'apellido': apellidoFinal,
           'correo': correoFinal,
           'rol': 'usuario',
+          'activo': true, //dato que utilizare para un widget para banear ahhh
           'primerInicio': true, //dato que utilizare para un widget me ahhhhh
         });
         // Redirigir al login remplazando la pantalla actual

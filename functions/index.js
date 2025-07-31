@@ -1,32 +1,46 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const { setGlobalOptions } = require("firebase-functions");
+const { onRequest } = require("firebase-functions/https");
+const admin = require("firebase-admin");
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+// Inicializar Firebase Admin
+admin.initializeApp();
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
+// Opcional: limitar cantidad máxima de instancias simultáneas
 setGlobalOptions({ maxInstances: 10 });
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+// Función HTTP para eliminar usuario y archivos de Storage
+exports.deleteUserAndStorage = onRequest(async (req, res) => {
+    if (req.method !== "POST") {
+        return res.status(405).send("Método no permitido");
+    }
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+    const uid = req.body.uid;
+
+    if (!uid) {
+        return res.status(400).send("Falta el UID del usuario");
+    }
+
+    try {
+        // Eliminar usuario de Authentication
+        await admin.auth().deleteUser(uid);
+        console.log(`Usuario ${uid} eliminado de Authentication`);
+
+        // Eliminar archivos del usuario en Storage
+        const bucket = admin.storage().bucket();
+        const userFilesPrefix = `${uid}/`;
+
+        const [files] = await bucket.getFiles({ prefix: userFilesPrefix });
+
+        if (files.length > 0) {
+            await Promise.all(files.map((file) => file.delete()));
+            console.log(`Archivos de ${uid} eliminados de Storage`);
+        } else {
+            console.log(`No se encontraron archivos para ${uid} en Storage`);
+        }
+
+        res.status(200).send(`Usuario ${uid} y sus archivos eliminados correctamente.`);
+    } catch (error) {
+        console.error("Error eliminando usuario y archivos:", error);
+        res.status(500).send("Error eliminando usuario y archivos: " + error.message);
+    }
+});
