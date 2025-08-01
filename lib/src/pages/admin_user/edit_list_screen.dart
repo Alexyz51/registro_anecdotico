@@ -484,27 +484,34 @@ class _EditListScreenState extends State<EditListScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.file_upload),
-                  label: const Text('Importar CSV'),
-                  onPressed: _showImportCsvDialog,
+                Flexible(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.file_upload),
+                    label: const Text('Importar CSV'),
+                    onPressed: _showImportCsvDialog,
+                  ),
                 ),
-                const SizedBox(width: 10),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Agregar alumno'),
-                  onPressed: _showAddAlumnoDialog,
+                Flexible(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text('Agregar alumno'),
+                    onPressed: _showAddAlumnoDialog,
+                  ),
                 ),
-                const SizedBox(width: 10),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.delete_forever),
-                  label: const Text('Borrar todo'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: _borrarTodosLosAlumnos,
+                Flexible(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.delete_forever),
+                    label: const Text('Borrar todo'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                    onPressed: _borrarTodosLosAlumnos,
+                  ),
                 ),
               ],
             ),
           ),
+          // En esta seccion se muestra la lista y otras funciones se ejecutan como eliminar etc
           Expanded(
             child: ListView(
               children: datos.entries.map((nivelEntry) {
@@ -520,7 +527,7 @@ class _EditListScreenState extends State<EditListScreen> {
                     return ExpansionTile(
                       title: Text(
                         nivel == 'nivel medio'
-                            ? '$grado curso'
+                            ? '$grado ° Curso'
                             : 'Grado: $grado',
                       ),
                       children: secciones.entries.map((seccionEntry) {
@@ -559,6 +566,7 @@ class _EditListScreenState extends State<EditListScreen> {
   }
 }
 
+// Esta seccion forma parte de importar desde csv que debo cambiar a español
 class CsvImportWidget extends StatefulWidget {
   final VoidCallback onImportCompleted;
 
