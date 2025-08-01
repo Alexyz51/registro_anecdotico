@@ -482,35 +482,48 @@ class _EditListScreenState extends State<EditListScreen> {
           const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
+            child: Wrap(
+              spacing: 12.0,
+              runSpacing: 12.0,
               children: [
-                Flexible(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.file_upload),
-                    label: const Text('Importar CSV'),
-                    onPressed: _showImportCsvDialog,
-                  ),
-                ),
-                Flexible(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: const Text('Agregar alumno'),
-                    onPressed: _showAddAlumnoDialog,
-                  ),
-                ),
-                Flexible(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.delete_forever),
-                    label: const Text('Borrar todo'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.file_upload),
+                  label: const Text('Importar CSV'),
+                  onPressed: _showImportCsvDialog,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
                     ),
-                    onPressed: _borrarTodosLosAlumnos,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text('Agregar alumno'),
+                  onPressed: _showAddAlumnoDialog,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.delete_forever),
+                  label: const Text('Borrar todo'),
+                  onPressed: _borrarTodosLosAlumnos,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+
           // En esta seccion se muestra la lista y otras funciones se ejecutan como eliminar etc
           Expanded(
             child: ListView(
