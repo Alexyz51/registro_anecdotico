@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/escolar_basica.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/nivel_medio.dart';
 import 'package:registro_anecdotico/src/pages/splash_screen.dart';
 import 'package:registro_anecdotico/src/pages/start_of_all/home_screen.dart';
 import 'package:registro_anecdotico/src/pages/start_of_all/login_screen.dart';
@@ -7,8 +9,6 @@ import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.
 import 'package:registro_anecdotico/src/pages/common_user/common_user_home_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/edit_list_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/users_list_screen.dart';
-import 'package:registro_anecdotico/src/pages/admin_user/first_time_setup_admin_screen.dart';
-import 'package:registro_anecdotico/src/pages/common_user/first_time_setup_user_screen.dart';
 
 // Importaciones de Firebase
 import 'package:firebase_core/firebase_core.dart';
@@ -50,8 +50,8 @@ class MyApp extends StatelessWidget {
         "admin_home": (context) => const AdminUserHomeScreen(),
         "edit_list": (context) => const EditListScreen(),
         "users_list": (context) => const UserListScreen(),
-        "first_setup_admin": (context) => const FirstTimeSetupAdminScreen(),
-        "first_setup_user": (context) => const FirstTimeSetupUserScreen(),
+        "nivel_medio": (context) => const NivelMedio(),
+        "escolar_basica": (context) => const EscolarBasicaScreen(),
       },
     );
   }

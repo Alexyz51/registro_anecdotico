@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.transparent,
         leading: BackButton(
           color: Color.fromARGB(255, 39, 2, 2),
-          onPressed: () => Navigator.pop(
+          onPressed: () => Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           ),

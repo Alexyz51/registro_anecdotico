@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csv/csv.dart'; //Para convertir archivos .csv en listas legibles por el programa
 import 'package:registro_anecdotico/src/pages/widgets/breadcrumb_navigation.dart';
 import 'package:diacritic/diacritic.dart'; //Para quitar acentos y cosas de ortogrfia correcta
+import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
 
 // Definicion de las varibles permitidas
 final nivelesPermitidos = ['escolar basica', 'nivel medio'];
@@ -462,7 +463,12 @@ class _EditListScreenState extends State<EditListScreen> {
         title: const Text('Editar lista'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminUserHomeScreen(),
+            ),
+          ),
         ),
       ),
       body: Column(

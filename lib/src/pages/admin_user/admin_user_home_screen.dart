@@ -257,13 +257,32 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: BreadcrumbBar(
-          items: [
-            BreadcrumbItem(
-              recorrido: 'Inicio',
-              onTap: () {
-                Navigator.pushReplacementNamed(context, 'admin_home');
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            BreadcrumbBar(
+              items: [
+                BreadcrumbItem(
+                  recorrido: 'Inicio',
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, 'admin_home');
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, 'escolar_basica');
               },
+              child: const Text('Escolar básica'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, 'nivel_medio');
+              },
+              child: const Text('Nivel medio'),
             ),
           ],
         ),
