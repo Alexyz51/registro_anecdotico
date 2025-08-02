@@ -74,22 +74,23 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
     });
   }
 
-  // Guardar registro de conducta
+  // Guardar registro de conducta con descripción y comentario
   Future<void> registrarConducta({
     required String color,
     required String comentario,
+    required String descripcion,
     required Map<String, dynamic> alumno,
   }) async {
     final registro = {
       'studentId': alumno['docId'],
       'fecha': DateTime.now(),
       'color': color,
+      'descripcion': descripcion,
       'comentario': comentario,
       'grado': alumno['grado'],
       'seccion': alumno['seccion'],
       'nivel': alumno['nivel'],
-      'nombreUsuario':
-          'Cargo Nombre Apellido', // Aquí deberías usar el usuario autenticado
+      'nombreUsuario': 'Cargo Nombre Apellido', // Ajustar usuario real
     };
 
     await FirebaseFirestore.instance.collection('records').add(registro);
@@ -100,6 +101,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
     String color,
   ) async {
     final _formKey = GlobalKey<FormState>();
+    String descripcion = '';
     String comentario = '';
 
     await showDialog(
@@ -109,23 +111,48 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
           title: Text(
             'Registrar conducta - ${color[0].toUpperCase()}${color.substring(1)}',
           ),
-          content: Form(
-            key: _formKey,
-            child: TextFormField(
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Comentario',
-                border: OutlineInputBorder(),
+          content: SizedBox(
+            width: 350,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Descripción del suceso',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'La descripción es obligatoria';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      descripcion = value!.trim();
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Comentario',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'El comentario es obligatorio';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      comentario = value!.trim();
+                    },
+                  ),
+                ],
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'El comentario es obligatorio';
-                }
-                return null;
-              },
-              onSaved: (value) {
-                comentario = value!.trim();
-              },
             ),
           ),
           actions: [
@@ -141,6 +168,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                   await registrarConducta(
                     color: color,
                     comentario: comentario,
+                    descripcion: descripcion,
                     alumno: alumno,
                   );
 
@@ -185,52 +213,140 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Escolar Básica')),
       body: ListView(
+        padding: const EdgeInsets.all(8),
         children: datos.entries.map((gradoEntry) {
           final grado = gradoEntry.key;
           final secciones = gradoEntry.value;
 
-          return ExpansionTile(
-            title: Text('Grado: $grado'),
-            children: secciones.entries.map((seccionEntry) {
-              final seccion = seccionEntry.key;
-              final alumnos = seccionEntry.value;
-
-              return ExpansionTile(
-                title: Text(
-                  'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Grado: $grado',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-                children: alumnos.map((alumno) {
-                  return ListTile(
-                    title: Text(
-                      '${alumno['numero_lista']}. ${alumno['nombre']} ${alumno['apellido']}',
+              ),
+              const SizedBox(height: 8),
+              ...secciones.entries.map((seccionEntry) {
+                final seccion = seccionEntry.key;
+                final alumnos = seccionEntry.value;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    trailing: Wrap(
-                      spacing: 6,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.circle, color: Colors.green),
-                          onPressed: () =>
-                              mostrarDialogoRegistro(alumno, 'verde'),
-                          tooltip: 'Marcar conducta verde',
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.circle, color: Colors.amber),
-                          onPressed: () =>
-                              mostrarDialogoRegistro(alumno, 'amarillo'),
-                          tooltip: 'Marcar conducta amarillo',
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.circle, color: Colors.red),
-                          onPressed: () =>
-                              mostrarDialogoRegistro(alumno, 'rojo'),
-                          tooltip: 'Marcar conducta rojo',
-                        ),
-                      ],
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        children: const [
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              'N°',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 4,
+                            child: Text(
+                              'Nombre y Apellido',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              'Evaluación',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  );
-                }).toList(),
-              );
-            }).toList(),
+                    ...alumnos.map((alumno) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: Colors.grey, width: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: Text('${alumno['numero_lista']}'),
+                            ),
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                '${alumno['nombre']} ${alumno['apellido']}',
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.circle,
+                                      color: Colors.green,
+                                    ),
+                                    onPressed: () =>
+                                        mostrarDialogoRegistro(alumno, 'verde'),
+                                    tooltip: 'Marcar conducta verde',
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.circle,
+                                      color: Colors.amber,
+                                    ),
+                                    onPressed: () => mostrarDialogoRegistro(
+                                      alumno,
+                                      'amarillo',
+                                    ),
+                                    tooltip: 'Marcar conducta amarillo',
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.circle, color: Colors.red),
+                                    onPressed: () =>
+                                        mostrarDialogoRegistro(alumno, 'rojo'),
+                                    tooltip: 'Marcar conducta rojo',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    const SizedBox(height: 20),
+                  ],
+                );
+              }).toList(),
+              const SizedBox(height: 20),
+            ],
           );
         }).toList(),
       ),
