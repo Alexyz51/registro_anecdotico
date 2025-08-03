@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class EscolarBasicaScreen extends StatefulWidget {
-  const EscolarBasicaScreen({super.key});
+class NivelMedioScreen extends StatefulWidget {
+  const NivelMedioScreen({super.key});
 
   @override
-  State<EscolarBasicaScreen> createState() => _EscolarBasicaScreenState();
+  State<NivelMedioScreen> createState() => _NivelMedioScreenState();
 }
 
-class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
+class _NivelMedioScreenState extends State<NivelMedioScreen> {
   bool estaCargando = true;
   Map<String, Map<String, List<Map<String, dynamic>>>> datos = {};
   Map<String, String> usuarioActual = {
@@ -31,7 +31,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
 
     final snapshot = await FirebaseFirestore.instance
         .collection('students')
-        .where('nivel', isEqualTo: 'escolar basica')
+        .where('nivel', isEqualTo: 'nivel medio')
         .get();
 
     final datosTemp = <String, Map<String, List<Map<String, dynamic>>>>{};
@@ -227,7 +227,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
           final secciones = gradoEntry.value;
 
           return ExpansionTile(
-            title: Text('Grado: $grado'),
+            title: Text('$grado° Curso'),
             children: secciones.entries.map((seccionEntry) {
               final seccion = seccionEntry.key;
               final alumnos = seccionEntry.value;

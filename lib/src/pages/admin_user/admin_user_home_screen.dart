@@ -187,6 +187,14 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Acerca de'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, 'about_app');
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.supervised_user_circle_sharp),
                 title: const Text('Usuarios'),
                 onTap: () {
