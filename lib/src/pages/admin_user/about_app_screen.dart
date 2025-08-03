@@ -136,7 +136,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

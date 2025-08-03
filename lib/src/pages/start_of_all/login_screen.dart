@@ -58,6 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final rol =
             datosUsuario['rol']; //estraemos rol y lo usamos en una estructura si;si no;entonces para redirigir
         // al usuario de acuerdo a su rol a su pantalla
+        if (!mounted) return;
 
         if (rol == 'usuario') {
           Navigator.pushReplacementNamed(context, 'user_home');

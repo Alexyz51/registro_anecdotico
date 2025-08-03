@@ -190,7 +190,7 @@ class _EditListScreenState extends State<EditListScreen> {
   }
 
   Future<void> _showAddAlumnoDialog() async {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String nombre = '';
     String apellido = '';
     String? nivel;
@@ -222,7 +222,7 @@ class _EditListScreenState extends State<EditListScreen> {
               title: const Text('Agregar alumno'),
               content: SingleChildScrollView(
                 child: Form(
-                  key: _formKey,
+                  key: formKey,
                   child: Column(
                     children: [
                       TextFormField(
@@ -304,8 +304,9 @@ class _EditListScreenState extends State<EditListScreen> {
                         keyboardType: TextInputType.number,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Requerido';
-                          if (int.tryParse(v) == null)
+                          if (int.tryParse(v) == null) {
                             return 'Debe ser un número';
+                          }
                           return null;
                         },
                         onSaved: (v) => anio = int.parse(v!),
@@ -321,8 +322,8 @@ class _EditListScreenState extends State<EditListScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
+                    if (formKey.currentState!.validate()) {
+                      formKey.currentState!.save();
 
                       // Normalizar para guardar en Firestore
                       final nivelNorm = normalizar(nivel!);
@@ -337,7 +338,7 @@ class _EditListScreenState extends State<EditListScreen> {
                         nivel: nivelNorm,
                         anio: anio!,
                       );
-
+                      if (!context.mounted) return;
                       Navigator.pop(context);
                     }
                   },
@@ -598,13 +599,13 @@ class CsvImportWidget extends StatefulWidget {
 class _CsvImportWidgetState extends State<CsvImportWidget> {
   bool _isLoading = false;
   String? _message;
-  int _importedCount = 0;
+  //int _importedCount = 0;
 
   Future<void> _pickAndUploadCsv() async {
     setState(() {
       _isLoading = true;
       _message = null;
-      _importedCount = 0;
+      //_importedCount = 0;
     });
 
     try {
@@ -658,15 +659,19 @@ class _CsvImportWidgetState extends State<CsvImportWidget> {
         final anio = int.tryParse(anioRaw) ?? 0;
 
         if (!nivelesPermitidos.contains(nivel)) continue;
-        if (nivel == 'escolar basica' && !gradosEscolarBasica.contains(grado))
+        if (nivel == 'escolar basica' && !gradosEscolarBasica.contains(grado)) {
           continue;
-        if (nivel == 'nivel medio' && !gradosNivelMedio.contains(grado))
+        }
+        if (nivel == 'nivel medio' && !gradosNivelMedio.contains(grado)) {
           continue;
+        }
         if (nivel == 'escolar basica' &&
-            !seccionesEscolarBasica.contains(seccion))
+            !seccionesEscolarBasica.contains(seccion)) {
           continue;
-        if (nivel == 'nivel medio' && !seccionesNivelMedio.contains(seccion))
+        }
+        if (nivel == 'nivel medio' && !seccionesNivelMedio.contains(seccion)) {
           continue;
+        }
 
         final data = {
           'nombre': nombre,
@@ -685,7 +690,7 @@ class _CsvImportWidgetState extends State<CsvImportWidget> {
       setState(() {
         _isLoading = false;
         _message = 'Importados $count alumnos.';
-        _importedCount = count;
+        //_importedCount = count;
       });
 
       widget.onImportCompleted();

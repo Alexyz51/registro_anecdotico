@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
+import 'package:logger/logger.dart';
 
 class NivelMedioScreen extends StatefulWidget {
   const NivelMedioScreen({super.key});
@@ -9,6 +12,7 @@ class NivelMedioScreen extends StatefulWidget {
 }
 
 class _NivelMedioScreenState extends State<NivelMedioScreen> {
+  final Logger logger = Logger();
   bool estaCargando = true;
   Map<String, Map<String, List<Map<String, dynamic>>>> datos = {};
   Map<String, String> usuarioActual = {
@@ -79,7 +83,15 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
   }
 
   Future<void> cargarUsuarioActual() async {
-    String uidActual = 'uid_usuario_autenticado';
+    User? usuario = FirebaseAuth.instance.currentUser;
+
+    if (usuario == null) {
+      // No hay usuario autenticado
+      logger.w('No hay usuario autenticado');
+      return;
+    }
+
+    String uidActual = usuario.uid;
 
     final docUser = await FirebaseFirestore.instance
         .collection('users')
@@ -89,7 +101,7 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
     if (docUser.exists) {
       final data = docUser.data()!;
       setState(() {
-        usuarioActual['cargo'] = data['cargo'] ?? '';
+        usuarioActual['rolReal'] = data['rolReal'] ?? '';
         usuarioActual['nombre'] = data['nombre'] ?? '';
         usuarioActual['apellido'] = data['apellido'] ?? '';
       });
@@ -112,102 +124,182 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
       'seccion': alumno['seccion'],
       'nivel': alumno['nivel'],
       'registrado_por':
-          '${usuarioActual['cargo']} ${usuarioActual['nombre']} ${usuarioActual['apellido']}',
+          '${usuarioActual['rolReal']} ${usuarioActual['nombre']} ${usuarioActual['apellido']}',
     };
 
     await FirebaseFirestore.instance.collection('records').add(registro);
   }
 
-  Future<void> mostrarDialogoRegistro(
-    Map<String, dynamic> alumno,
-    String color,
-  ) async {
+  Future<void> mostrarDialogoClasificacion(Map<String, dynamic> alumno) async {
+    String? colorSeleccionado;
     final _formKey = GlobalKey<FormState>();
-    String descripcion = '';
-    String comentario = '';
+    final TextEditingController descripcionController = TextEditingController();
+    final TextEditingController comentarioController = TextEditingController();
 
     await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(
-            'Registrar conducta - ${color[0].toUpperCase()}${color.substring(1)}',
-          ),
-          content: Form(
-            key: _formKey,
-            child: SizedBox(
-              width: 300,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      maxLines: 2,
-                      decoration: const InputDecoration(
-                        labelText: 'Descripción del suceso',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'La descripción es obligatoria';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        descripcion = value!.trim();
-                      },
+        final screenWidth = MediaQuery.of(context).size.width;
+        final dialogWidth = screenWidth > 600 ? 500.0 : screenWidth * 0.9;
+
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text(
+                'Registrar conducta',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              content: Container(
+                width: dialogWidth,
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Clasificación',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                setStateDialog(() {
+                                  colorSeleccionado = 'verde';
+                                });
+                              },
+                              child: CircleAvatar(
+                                backgroundColor: Colors.green,
+                                radius: 10, // más pequeño
+                                child: colorSeleccionado == 'verde'
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 14,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () {
+                                setStateDialog(() {
+                                  colorSeleccionado = 'amarillo';
+                                });
+                              },
+                              child: CircleAvatar(
+                                backgroundColor: Colors.amber,
+                                radius: 10,
+                                child: colorSeleccionado == 'amarillo'
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 14,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () {
+                                setStateDialog(() {
+                                  colorSeleccionado = 'rojo';
+                                });
+                              },
+                              child: CircleAvatar(
+                                backgroundColor: Colors.red,
+                                radius: 10,
+                                child: colorSeleccionado == 'rojo'
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 14,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: descripcionController,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'Descripción del suceso',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Debe ingresar la descripción del suceso';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: comentarioController,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'Comentario',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Debe ingresar un comentario';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Comentario',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'El comentario es obligatorio';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        comentario = value!.trim();
-                      },
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) {
+                      return;
+                    }
+                    if (colorSeleccionado == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Debe seleccionar un color'),
+                        ),
+                      );
+                      return;
+                    }
 
-                  await registrarConducta(
-                    color: color,
-                    descripcion: descripcion,
-                    comentario: comentario,
-                    alumno: alumno,
-                  );
+                    await registrarConducta(
+                      color: colorSeleccionado!,
+                      descripcion: descripcionController.text.trim(),
+                      comentario: comentarioController.text.trim(),
+                      alumno: alumno,
+                    );
 
-                  Navigator.pop(context);
+                    Navigator.pop(context);
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Registro guardado de ${alumno['nombre']}'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Guardar'),
-            ),
-          ],
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Registro guardado de ${alumno['nombre']} ${alumno['apellido']}',
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -220,7 +312,21 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Escolar Básica')),
+      appBar: AppBar(
+        title: const Text('Nivel Medio'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AdminUserHomeScreen(),
+              ),
+            );
+          },
+        ),
+      ),
+
       body: ListView(
         children: datos.entries.map((gradoEntry) {
           final grado = gradoEntry.key;
@@ -263,7 +369,8 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                             ),
                             SizedBox(width: 10),
                             SizedBox(
-                              width: 180,
+                              // Se deja flexible sin ancho fijo
+                              width: 250,
                               child: Text(
                                 'Nombre y Apellido',
                                 style: TextStyle(
@@ -272,19 +379,7 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(width: 10),
-                            SizedBox(
-                              width: 160,
-                              child: Center(
-                                child: Text(
-                                  'Evaluación',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            // Ya no hay columna Evaluación ni colores aquí
                           ],
                         ),
                       ),
@@ -333,64 +428,21 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                                     horizontal: 8,
                                   ),
                                 ),
+                                // Nombre flexible sin estilo azul ni subrayado
                                 SizedBox(
-                                  width: 180,
-                                  child: Text(
-                                    '${alumno['nombre']} ${alumno['apellido']}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Container(
-                                  width: 1,
-                                  height: 24,
-                                  color: Colors.grey.shade400,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 160,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.circle,
-                                          color: Colors.green,
-                                          size: 24,
-                                        ),
-                                        onPressed: () => mostrarDialogoRegistro(
-                                          alumno,
-                                          'verde',
-                                        ),
-                                        tooltip: 'Marcar conducta verde',
+                                  width: 250,
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        mostrarDialogoClasificacion(alumno),
+                                    child: Text(
+                                      '${alumno['nombre']} ${alumno['apellido']}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        decoration: TextDecoration.none,
                                       ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.circle,
-                                          color: Colors.amber,
-                                          size: 24,
-                                        ),
-                                        onPressed: () => mostrarDialogoRegistro(
-                                          alumno,
-                                          'amarillo',
-                                        ),
-                                        tooltip: 'Marcar conducta amarillo',
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.circle,
-                                          color: Colors.red,
-                                          size: 24,
-                                        ),
-                                        onPressed: () => mostrarDialogoRegistro(
-                                          alumno,
-                                          'rojo',
-                                        ),
-                                        tooltip: 'Marcar conducta rojo',
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ],

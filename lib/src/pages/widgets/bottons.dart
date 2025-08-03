@@ -7,8 +7,8 @@ class HomeButtons extends StatelessWidget {
   const HomeButtons({
     required this.onEscolarBasicaPressed,
     required this.onNivelMedioPressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
