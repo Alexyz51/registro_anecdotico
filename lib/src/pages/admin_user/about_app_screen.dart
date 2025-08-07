@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
+import '../widgets/breadcrumb_navigation.dart';
 
 class AboutAppScreen extends StatefulWidget {
   const AboutAppScreen({super.key});
@@ -64,9 +65,13 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const cremita = const Color.fromARGB(248, 252, 230, 230);
+    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
+    //Paleta de colores habitual
     return Scaffold(
+      backgroundColor: cremita,
       appBar: AppBar(
-        title: const Text('Acerca de'),
+        backgroundColor: cremita,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -77,6 +82,24 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
             );
           },
         ),
+        centerTitle: true,
+        title: const Text(
+          'Registro Anecdotico',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(226, 201, 183, 171),
+          ),
+        ),
+        automaticallyImplyLeading: true,
+        elevation: 0, // para que no tenga sombra propia
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(4.0), // altura de la barra separadora
+          child: Container(
+            color: rojoOscuro, // tu color rojo oscuro declarado
+            height: 5.0,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         controller: _scrollController,
@@ -84,6 +107,18 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            BreadcrumbBar(
+              items: [
+                BreadcrumbItem(
+                  recorrido: 'Secciones',
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, 'admin_home');
+                  },
+                ),
+                BreadcrumbItem(recorrido: 'Acerca de la app'),
+              ],
+            ),
+            const SizedBox(height: 24),
             // Glosario interactivo (tipo índice)
             Wrap(
               spacing: 12,
@@ -95,7 +130,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                     item['palabra']!,
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Colors.blue,
+                      color: rojoOscuro,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -110,6 +145,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                 key: itemKeys[item['palabra']],
                 margin: const EdgeInsets.only(bottom: 20),
                 child: Card(
+                  color: const Color.fromARGB(248, 255, 243, 243),
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -122,6 +158,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                         Text(
                           item['palabra']!,
                           style: const TextStyle(
+                            color: Color.fromARGB(255, 201, 183, 171),
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -129,7 +166,10 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                         const SizedBox(height: 8),
                         Text(
                           item['descripcion']!,
-                          style: const TextStyle(fontSize: 14),
+                          style: const TextStyle(
+                            color: rojoOscuro,
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ),

@@ -11,6 +11,8 @@ class AdminUserHomeScreen extends StatefulWidget {
 }
 
 class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
+  String? _itemSeleccionado;
+
   bool _cargando = true;
   String? _cargoSeleccionado;
   final List<String> cargosAdmin = [
@@ -132,12 +134,20 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String hexColor = '#8e0b13';
+    int colorValue = int.parse(hexColor.substring(1), radix: 16);
+    Color miColor = Color(colorValue | 0xFF000000);
+    const cremita = const Color.fromARGB(248, 252, 230, 230);
+    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
+    //Paleta de colores habitual
     if (_cargando) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
+      backgroundColor: cremita,
       drawer: Drawer(
+        backgroundColor: miColor,
         child: SafeArea(
           child: ListView(
             padding: EdgeInsets.zero,
@@ -148,7 +158,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
                   vertical: 20,
                   horizontal: 16,
                 ),
-                color: Theme.of(context).primaryColor,
+                color: miColor,
                 child: Column(
                   children: [
                     Center(
@@ -163,7 +173,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
                       Text(
                         '$rolReal $nombre $apellido',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: cremita,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -171,7 +181,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
                       )
                     else
                       const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                        child: CircularProgressIndicator(color: cremita),
                       ),
                   ],
                 ),
@@ -179,44 +189,108 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
 
               // Ítems del menú
               ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Editar lista'),
+                tileColor: _itemSeleccionado == 'edit_list'
+                    ? const Color.fromARGB(248, 252, 230, 230)
+                    : null,
+                leading: const Icon(Icons.edit, color: Colors.white),
+                title: const Text(
+                  'Editar lista',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
+                  setState(() {
+                    _itemSeleccionado = 'edit_list'; // 👈 Actualiza el estado
+                  });
                   Navigator.pop(context);
                   Navigator.pushNamed(context, 'edit_list');
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Acerca de'),
+                tileColor: _itemSeleccionado == 'users_list'
+                    ? const Color.fromARGB(248, 252, 230, 230)
+                    : null,
+                leading: const Icon(Icons.people, color: Colors.white),
+                title: const Text(
+                  'Usuarios',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, 'about_app');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.supervised_user_circle_sharp),
-                title: const Text('Usuarios'),
-                onTap: () {
+                  setState(() {
+                    _itemSeleccionado = 'users_list'; // 👈 Actualiza el estado
+                  });
                   Navigator.pop(context);
                   Navigator.pushNamed(context, 'users_list');
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Cerrar sesión'),
-                onTap: () async {
-                  await FirebaseAuth.instance.signOut();
-                  Navigator.of(
-                    context,
-                  ).pushReplacementNamed('login'); // o tu ruta de login
+                tileColor: _itemSeleccionado == 'about_app'
+                    ? const Color.fromARGB(248, 252, 230, 230)
+                    : null,
+                leading: const Icon(Icons.info, color: Colors.white),
+                title: const Text(
+                  'Acerca de',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _itemSeleccionado = 'about_app'; // 👈 Actualiza el estado
+                  });
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, 'about_app');
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete_forever, color: Colors.red),
-                title: const Text('Borrar cuenta'),
+                tileColor: _itemSeleccionado == 'logout'
+                    ? const Color.fromARGB(248, 252, 230, 230)
+                    : null,
+                leading: Icon(
+                  Icons.logout,
+                  color: _itemSeleccionado == 'logout'
+                      ? Colors.black
+                      : Colors.white,
+                ),
+                title: Text(
+                  'Cerrar sesión',
+                  style: TextStyle(
+                    color: _itemSeleccionado == 'logout'
+                        ? Colors.black
+                        : Colors.white,
+                  ),
+                ),
                 onTap: () async {
-                  bool confirm = await showDialog(
+                  setState(() {
+                    _itemSeleccionado =
+                        'logout'; // Marca este item como seleccionado
+                  });
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.of(context).pushReplacementNamed('login');
+                },
+              ),
+
+              ListTile(
+                tileColor: _itemSeleccionado == 'borrar_cuenta'
+                    ? const Color.fromARGB(
+                        248,
+                        252,
+                        230,
+                        230,
+                      ) // color cremita cuando está seleccionado
+                    : null,
+                leading: const Icon(
+                  Icons.delete_forever,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
+                title: const Text(
+                  'Borrar cuenta',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () async {
+                  setState(() {
+                    _itemSeleccionado =
+                        'borrar_cuenta'; // marcar como seleccionado
+                  });
+
+                  bool? confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: const Text('Confirmar eliminación'),
@@ -239,7 +313,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
                     ),
                   );
 
-                  if (confirm) {
+                  if (confirm == true) {
                     try {
                       await FirebaseAuth.instance.currentUser!.delete();
                       Navigator.of(context).pushReplacementNamed('login');
@@ -259,9 +333,28 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
           ),
         ),
       ),
+
       appBar: AppBar(
-        title: const Text('Panel de Administrador'),
+        backgroundColor: cremita,
+        iconTheme: IconThemeData(color: rojoOscuro),
+        centerTitle: true,
+        title: const Text(
+          'Registro Anecdotico',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(226, 201, 183, 171),
+          ),
+        ),
         automaticallyImplyLeading: true,
+        elevation: 0, // para que no tenga sombra propia
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(4.0), // altura de la barra separadora
+          child: Container(
+            color: rojoOscuro, // tu color rojo oscuro declarado
+            height: 5.0,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -271,26 +364,89 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
             BreadcrumbBar(
               items: [
                 BreadcrumbItem(
-                  recorrido: 'Inicio',
+                  recorrido: 'Secciones',
                   onTap: () {
                     Navigator.pushReplacementNamed(context, 'admin_home');
                   },
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, 'escolar_basica');
-              },
-              child: const Text('Escolar básica'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, 'nivel_medio');
-              },
-              child: const Text('Nivel medio'),
+            // Barrita fina separadora
+            /*Align(
+              alignment: Alignment.center,
+              child: Container(
+                height: 1.0,
+                width:
+                    2900, // Cambiá este valor para que sea más larga o más corta
+                color: rojoOscuro,
+              ),
+            ),*/
+            const SizedBox(height: 30),
+            Center(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Ancho máximo del botón: 400 en PC, 90% en móvil
+                  double buttonWidth = constraints.maxWidth > 600
+                      ? 400
+                      : constraints.maxWidth * 0.9;
+
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: buttonWidth,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: miColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pushNamed(context, 'escolar_basica');
+                            },
+                            child: const Text(
+                              'Escolar básica',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        SizedBox(
+                          width: buttonWidth,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: miColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pushNamed(context, 'nivel_medio');
+                            },
+                            child: const Text(
+                              'Nivel medio',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

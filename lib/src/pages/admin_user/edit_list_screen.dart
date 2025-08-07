@@ -190,7 +190,7 @@ class _EditListScreenState extends State<EditListScreen> {
   }
 
   Future<void> _showAddAlumnoDialog() async {
-    final formKey = GlobalKey<FormState>();
+    final _formKey = GlobalKey<FormState>();
     String nombre = '';
     String apellido = '';
     String? nivel;
@@ -222,7 +222,7 @@ class _EditListScreenState extends State<EditListScreen> {
               title: const Text('Agregar alumno'),
               content: SingleChildScrollView(
                 child: Form(
-                  key: formKey,
+                  key: _formKey,
                   child: Column(
                     children: [
                       TextFormField(
@@ -304,9 +304,8 @@ class _EditListScreenState extends State<EditListScreen> {
                         keyboardType: TextInputType.number,
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Requerido';
-                          if (int.tryParse(v) == null) {
+                          if (int.tryParse(v) == null)
                             return 'Debe ser un número';
-                          }
                           return null;
                         },
                         onSaved: (v) => anio = int.parse(v!),
@@ -322,8 +321,8 @@ class _EditListScreenState extends State<EditListScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      formKey.currentState!.save();
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
 
                       // Normalizar para guardar en Firestore
                       final nivelNorm = normalizar(nivel!);
@@ -338,7 +337,7 @@ class _EditListScreenState extends State<EditListScreen> {
                         nivel: nivelNorm,
                         anio: anio!,
                       );
-                      if (!context.mounted) return;
+
                       Navigator.pop(context);
                     }
                   },
@@ -457,36 +456,65 @@ class _EditListScreenState extends State<EditListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String hexColor = '#8e0b13';
+    int colorValue = int.parse(hexColor.substring(1), radix: 16);
+    Color miColor = Color(colorValue | 0xFF000000);
+    const cremita = const Color.fromARGB(248, 252, 230, 230);
+    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
+    //Paleta de colores habitual
     if (cargando) return const Center(child: CircularProgressIndicator());
 
     return Scaffold(
+      backgroundColor: cremita,
       appBar: AppBar(
-        title: const Text('Editar lista'),
+        backgroundColor: cremita,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AdminUserHomeScreen(),
-            ),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
+              (route) => false,
+            );
+          },
+        ),
+        centerTitle: true,
+        title: const Text(
+          'Registro Anecdotico',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(226, 201, 183, 171),
+          ),
+        ),
+        automaticallyImplyLeading: true,
+        elevation: 0, // para que no tenga sombra propia
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(4.0), // altura de la barra separadora
+          child: Container(
+            color: rojoOscuro, // tu color rojo oscuro declarado
+            height: 5.0,
           ),
         ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BreadcrumbBar(
-            items: [
-              BreadcrumbItem(
-                recorrido: 'Inicio',
-                onTap: () {
-                  Navigator.pushNamed(context, '/');
-                },
-              ),
-              BreadcrumbItem(recorrido: 'Editar lista'),
-            ],
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: BreadcrumbBar(
+              items: [
+                BreadcrumbItem(
+                  recorrido: 'Secciones',
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, 'admin_home');
+                  },
+                ),
+                BreadcrumbItem(recorrido: 'Editar lista'),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
+          //const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Wrap(
@@ -498,6 +526,8 @@ class _EditListScreenState extends State<EditListScreen> {
                   label: const Text('Importar CSV'),
                   onPressed: _showImportCsvDialog,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: miColor, // tu color personalizado
+                    foregroundColor: Colors.white, // texto e ícono en blanco
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
                       vertical: 12.0,
@@ -509,6 +539,8 @@ class _EditListScreenState extends State<EditListScreen> {
                   label: const Text('Agregar alumno'),
                   onPressed: _showAddAlumnoDialog,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: miColor, // tu color personalizado
+                    foregroundColor: Colors.white, // texto e ícono en blanco
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
                       vertical: 12.0,
@@ -520,7 +552,8 @@ class _EditListScreenState extends State<EditListScreen> {
                   label: const Text('Borrar todo'),
                   onPressed: _borrarTodosLosAlumnos,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: miColor, // tu color personalizado
+                    foregroundColor: Colors.white, // texto e ícono en blanco
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
                       vertical: 12.0,
@@ -599,13 +632,13 @@ class CsvImportWidget extends StatefulWidget {
 class _CsvImportWidgetState extends State<CsvImportWidget> {
   bool _isLoading = false;
   String? _message;
-  //int _importedCount = 0;
+  int _importedCount = 0;
 
   Future<void> _pickAndUploadCsv() async {
     setState(() {
       _isLoading = true;
       _message = null;
-      //_importedCount = 0;
+      _importedCount = 0;
     });
 
     try {
@@ -659,19 +692,15 @@ class _CsvImportWidgetState extends State<CsvImportWidget> {
         final anio = int.tryParse(anioRaw) ?? 0;
 
         if (!nivelesPermitidos.contains(nivel)) continue;
-        if (nivel == 'escolar basica' && !gradosEscolarBasica.contains(grado)) {
+        if (nivel == 'escolar basica' && !gradosEscolarBasica.contains(grado))
           continue;
-        }
-        if (nivel == 'nivel medio' && !gradosNivelMedio.contains(grado)) {
+        if (nivel == 'nivel medio' && !gradosNivelMedio.contains(grado))
           continue;
-        }
         if (nivel == 'escolar basica' &&
-            !seccionesEscolarBasica.contains(seccion)) {
+            !seccionesEscolarBasica.contains(seccion))
           continue;
-        }
-        if (nivel == 'nivel medio' && !seccionesNivelMedio.contains(seccion)) {
+        if (nivel == 'nivel medio' && !seccionesNivelMedio.contains(seccion))
           continue;
-        }
 
         final data = {
           'nombre': nombre,
@@ -690,7 +719,7 @@ class _CsvImportWidgetState extends State<CsvImportWidget> {
       setState(() {
         _isLoading = false;
         _message = 'Importados $count alumnos.';
-        //_importedCount = count;
+        _importedCount = count;
       });
 
       widget.onImportCompleted();

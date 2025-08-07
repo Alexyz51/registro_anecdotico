@@ -358,7 +358,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                                         icon: const Icon(
                                           Icons.circle,
                                           color: Colors.green,
-                                          size: 24,
+                                          size: 22,
                                         ),
                                         onPressed: () => mostrarDialogoRegistro(
                                           alumno,
@@ -370,7 +370,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                                         icon: const Icon(
                                           Icons.circle,
                                           color: Colors.amber,
-                                          size: 24,
+                                          size: 22,
                                         ),
                                         onPressed: () => mostrarDialogoRegistro(
                                           alumno,
@@ -382,7 +382,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                                         icon: const Icon(
                                           Icons.circle,
                                           color: Colors.red,
-                                          size: 24,
+                                          size: 22,
                                         ),
                                         onPressed: () => mostrarDialogoRegistro(
                                           alumno,

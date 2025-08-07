@@ -174,7 +174,7 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                               },
                               child: CircleAvatar(
                                 backgroundColor: Colors.green,
-                                radius: 10, // más pequeño
+                                radius: 9, // más pequeño
                                 child: colorSeleccionado == 'verde'
                                     ? const Icon(
                                         Icons.check,
@@ -193,7 +193,7 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                               },
                               child: CircleAvatar(
                                 backgroundColor: Colors.amber,
-                                radius: 10,
+                                radius: 9,
                                 child: colorSeleccionado == 'amarillo'
                                     ? const Icon(
                                         Icons.check,
@@ -212,7 +212,7 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                               },
                               child: CircleAvatar(
                                 backgroundColor: Colors.red,
-                                radius: 10,
+                                radius: 9,
                                 child: colorSeleccionado == 'rojo'
                                     ? const Icon(
                                         Icons.check,

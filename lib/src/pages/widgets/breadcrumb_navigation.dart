@@ -16,19 +16,16 @@ class BreadcrumbBar extends StatelessWidget {
     return Row(
       //coloca los elemetos en una fila
       children: items.map((item) {
-        //para recorrer el mapa
-        final esPrimero =
-            item == items.first; //es verdadero si es el primero de la lista
+        //para recorrer el mapaflutter run
+
         final esUltimo =
             item == items.last; //es verdadero si es el ultimo de la lista
 
-        // Si no es el último, puede ser clickeable
+        // el último no puede ser clickeable
         final esClikeable = !esUltimo;
 
         // Color: gris para el primero y último, azul claro para el resto
-        final color = (esPrimero || esUltimo)
-            ? Colors.grey
-            : const Color.fromARGB(255, 227, 238, 247);
+        final color = Color.fromARGB(226, 201, 183, 171);
 
         //Aqui va la parte visual
         return Row(
