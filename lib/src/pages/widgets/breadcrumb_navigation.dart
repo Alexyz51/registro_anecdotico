@@ -25,7 +25,7 @@ class BreadcrumbBar extends StatelessWidget {
         final esClikeable = !esUltimo;
 
         // Color: gris para el primero y último, azul claro para el resto
-        final color = Color.fromARGB(226, 201, 183, 171);
+        final color = Color.fromARGB(255, 39, 2, 2);
 
         //Aqui va la parte visual
         return Row(
