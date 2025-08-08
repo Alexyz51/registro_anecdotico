@@ -10,6 +10,7 @@ import 'package:registro_anecdotico/src/pages/common_user/common_user_home_scree
 import 'package:registro_anecdotico/src/pages/admin_user/edit_list_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/users_list_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/about_app_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/records_summary_screen.dart';
 
 // Importaciones de Firebase
 import 'package:firebase_core/firebase_core.dart';
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
         "nivel_medio": (context) => const NivelMedioScreen(),
         "escolar_basica": (context) => const EscolarBasicaScreen(),
         "about_app": (context) => const AboutAppScreen(),
+        "records_summary": (context) => const RecordsSummaryScreen(),
       },
     );
   }

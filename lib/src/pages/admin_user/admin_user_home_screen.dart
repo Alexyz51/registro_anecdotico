@@ -206,6 +206,24 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
                 },
               ),
               ListTile(
+                tileColor: _itemSeleccionado == 'about_app'
+                    ? const Color.fromARGB(248, 252, 230, 230)
+                    : null,
+                leading: const Icon(Icons.summarize, color: Colors.white),
+                title: const Text(
+                  'Reportes',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _itemSeleccionado =
+                        'records_summary'; // 👈 Actualiza el estado
+                  });
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, 'records_summary');
+                },
+              ),
+              ListTile(
                 tileColor: _itemSeleccionado == 'users_list'
                     ? const Color.fromARGB(248, 252, 230, 230)
                     : null,
