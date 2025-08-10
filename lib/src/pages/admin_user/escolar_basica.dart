@@ -126,6 +126,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
   }
 
   Future<void> mostrarDialogoClasificacion(Map<String, dynamic> alumno) async {
+    String? colorSeleccionado;
     final _formKey = GlobalKey<FormState>();
     final TextEditingController comentarioController = TextEditingController();
     final TextEditingController otrosController = TextEditingController();
@@ -141,6 +142,12 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
       'Ausente con reposo médico',
     ];
 
+    // Variables para estado, definidas aquí para que persistan dentro del diálogo
+    Map<String, bool> conductasSeleccionadas = {
+      for (var c in conductasFrecuentes) c: false,
+    };
+    bool otrosSeleccionado = false;
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -149,23 +156,17 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
 
         return StatefulBuilder(
           builder: (context, setStateDialog) {
-            // VARIABLES DE ESTADO MOVIDAS AQUÍ
-            String? colorSeleccionado;
-            Map<String, bool> conductasSeleccionadas = {
-              for (var c in conductasFrecuentes) c: false,
-            };
-            bool otrosSeleccionado = false;
-
             return AlertDialog(
               title: const Text(
                 'Registrar conducta',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              content: Container(
+              content: SizedBox(
                 width: dialogWidth,
-                child: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,10 +238,13 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
+
+                        // Aquí el título cambiado
                         const Text(
-                          'Conductas frecuentes:',
+                          'Descripción del Suceso:',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
+
                         ...conductasFrecuentes.map((conducta) {
                           return CheckboxListTile(
                             title: Text(conducta),
@@ -255,6 +259,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                             contentPadding: EdgeInsets.zero,
                           );
                         }).toList(),
+
                         CheckboxListTile(
                           title: const Text('Otros'),
                           value: otrosSeleccionado,
@@ -286,6 +291,8 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                             },
                           ),
                         const SizedBox(height: 16),
+
+                        // Campo fijo "Sugerencia / Reflexión"
                         TextFormField(
                           controller: comentarioController,
                           maxLines: 3,
