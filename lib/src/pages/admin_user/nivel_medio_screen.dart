@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
 import 'package:logger/logger.dart';
+import 'package:registro_anecdotico/src/pages/widgets/breadcrumb_navigation.dart';
 
 class NivelMedioScreen extends StatefulWidget {
   const NivelMedioScreen({super.key});
@@ -133,12 +134,31 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
   Future<void> mostrarDialogoClasificacion(Map<String, dynamic> alumno) async {
     String? colorSeleccionado;
     final _formKey = GlobalKey<FormState>();
-    final TextEditingController descripcionController = TextEditingController();
     final TextEditingController comentarioController = TextEditingController();
+    final TextEditingController otrosController = TextEditingController();
+
+    final List<String> conductasFrecuentes = [
+      'No entrega tarea',
+      'No mantiene una conducta apropiada',
+      'Ausencia justificada',
+      'Ausencia injustificada',
+      'Llegada tardía',
+      'No usa el uniforme correspondiente',
+      'Trae objetos distractores en la institución',
+      'Ausente con reposo médico',
+    ];
+
+    Map<String, bool> conductasSeleccionadas = {
+      for (var c in conductasFrecuentes) c: false,
+    };
+    bool otrosSeleccionado = false;
+
+    // Contexto para SnackBar fuera del diálogo
+    final scaffoldContext = context;
 
     await showDialog(
       context: context,
-      builder: (context) {
+      builder: (contextDialog) {
         final screenWidth = MediaQuery.of(context).size.width;
         final dialogWidth = screenWidth > 600 ? 500.0 : screenWidth * 0.9;
 
@@ -149,11 +169,12 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                 'Registrar conducta',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              content: Container(
+              content: SizedBox(
                 width: dialogWidth,
-                child: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,7 +195,7 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                               },
                               child: CircleAvatar(
                                 backgroundColor: Colors.green,
-                                radius: 9, // más pequeño
+                                radius: 9,
                                 child: colorSeleccionado == 'verde'
                                     ? const Icon(
                                         Icons.check,
@@ -224,32 +245,70 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          controller: descripcionController,
-                          maxLines: 2,
-                          decoration: const InputDecoration(
-                            labelText: 'Descripción del suceso',
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Debe ingresar la descripción del suceso';
-                            }
-                            return null;
-                          },
+                        const SizedBox(height: 16),
+
+                        const Text(
+                          'Descripción del Suceso:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 12),
+
+                        ...conductasFrecuentes.map((conducta) {
+                          return CheckboxListTile(
+                            title: Text(conducta),
+                            value: conductasSeleccionadas[conducta],
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (bool? value) {
+                              setStateDialog(() {
+                                conductasSeleccionadas[conducta] =
+                                    value ?? false;
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          );
+                        }).toList(),
+
+                        CheckboxListTile(
+                          title: const Text('Otros'),
+                          value: otrosSeleccionado,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (bool? value) {
+                            setStateDialog(() {
+                              otrosSeleccionado = value ?? false;
+                              if (!otrosSeleccionado) {
+                                otrosController.clear();
+                              }
+                            });
+                          },
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        if (otrosSeleccionado)
+                          TextFormField(
+                            controller: otrosController,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              labelText: 'Describa la conducta personalizada',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (otrosSeleccionado &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'Debe describir la conducta personalizada';
+                              }
+                              return null;
+                            },
+                          ),
+                        const SizedBox(height: 16),
+
                         TextFormField(
                           controller: comentarioController,
-                          maxLines: 2,
+                          maxLines: 3,
                           decoration: const InputDecoration(
-                            labelText: 'Comentario',
+                            labelText: 'Sugerencias / Reflexión',
                             border: OutlineInputBorder(),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Debe ingresar un comentario';
+                              return 'Debe ingresar una sugerencia o reflexión (puede ser un guion)';
                             }
                             return null;
                           },
@@ -261,16 +320,18 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(contextDialog),
                   child: const Text('Cancelar'),
                 ),
                 ElevatedButton(
                   onPressed: () async {
                     if (!_formKey.currentState!.validate()) {
+                      print('Validación falló');
                       return;
                     }
+
                     if (colorSeleccionado == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                         const SnackBar(
                           content: Text('Debe seleccionar un color'),
                         ),
@@ -278,16 +339,55 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                       return;
                     }
 
-                    await registrarConducta(
-                      color: colorSeleccionado!,
-                      descripcion: descripcionController.text.trim(),
-                      comentario: comentarioController.text.trim(),
-                      alumno: alumno,
-                    );
+                    List<String> conductasSeleccionadasLista =
+                        conductasSeleccionadas.entries
+                            .where((e) => e.value)
+                            .map((e) => e.key)
+                            .toList();
 
-                    Navigator.pop(context);
+                    if (otrosSeleccionado &&
+                        otrosController.text.trim().isNotEmpty) {
+                      conductasSeleccionadasLista.add(
+                        otrosController.text.trim(),
+                      );
+                    }
 
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    if (conductasSeleccionadasLista.isEmpty) {
+                      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Debe seleccionar al menos una conducta o escribir en Otros',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final descripcion = conductasSeleccionadasLista
+                        .map((c) => '• $c')
+                        .join('\n');
+                    final comentario = comentarioController.text.trim();
+
+                    try {
+                      await registrarConducta(
+                        color: colorSeleccionado!,
+                        descripcion: descripcion,
+                        comentario: comentario,
+                        alumno: alumno,
+                      );
+                    } catch (e) {
+                      print('Error guardando conducta: $e');
+                      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                        SnackBar(
+                          content: Text('Error al guardar registro: $e'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(contextDialog);
+
+                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                       SnackBar(
                         content: Text(
                           'Registro guardado de ${alumno['nombre']} ${alumno['apellido']}',
@@ -307,156 +407,208 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color cremitaGris = Color(0xFFC7B7A3);
+    final grisClarito = Colors.grey.shade200;
+    final grisMedio = Colors.grey.shade300;
+    final rojoClaro = Colors.red.shade100;
+    String hexColor = '#8e0b13';
+    int colorValue = int.parse(hexColor.substring(1), radix: 16);
+    Color miColor = Color(colorValue | 0xFF000000);
+    const cremita = const Color.fromARGB(248, 252, 230, 230);
+    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
+    //Paleta de colores habitual
     if (estaCargando) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
+      backgroundColor: cremita,
       appBar: AppBar(
-        title: const Text('Nivel Medio'),
+        backgroundColor: cremita,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacement(
+            Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                builder: (context) => const AdminUserHomeScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
+              (route) => false,
             );
           },
         ),
+        centerTitle: true,
+        title: const Text(
+          'Registro Anecdotico',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(226, 201, 183, 171),
+          ),
+        ),
+        automaticallyImplyLeading: true,
+        elevation: 0, // para que no tenga sombra propia
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(4.0), // altura de la barra separadora
+          child: Container(
+            color: rojoOscuro, // tu color rojo oscuro declarado
+            height: 5.0,
+          ),
+        ),
       ),
 
-      body: ListView(
-        children: datos.entries.map((gradoEntry) {
-          final grado = gradoEntry.key;
-          final secciones = gradoEntry.value;
-
-          return ExpansionTile(
-            title: Text('$grado° Curso'),
-            children: secciones.entries.map((seccionEntry) {
-              final seccion = seccionEntry.key;
-              final alumnos = seccionEntry.value;
-
-              return ExpansionTile(
-                title: Text(
-                  'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: BreadcrumbBar(
+              items: [
+                BreadcrumbItem(
+                  recorrido: 'Secciones',
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, 'admin_home');
+                  },
                 ),
-                children: [
-                  // ENCABEZADO
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minWidth: MediaQuery.of(context).size.width,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: const [
-                            SizedBox(
-                              width: 30,
-                              child: Center(
-                                child: Text(
-                                  'Nro',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            SizedBox(
-                              // Se deja flexible sin ancho fijo
-                              width: 250,
-                              child: Text(
-                                'Nombre y Apellido',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                            // Ya no hay columna Evaluación ni colores aquí
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                BreadcrumbItem(recorrido: 'Lista de Nivel Medio'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              children: datos.entries.map((gradoEntry) {
+                final grado = gradoEntry.key;
+                final secciones = gradoEntry.value;
 
-                  // FILAS DE ALUMNOS
-                  ...alumnos.map((alumno) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.grey.shade400,
-                            width: 0.5,
-                          ),
-                        ),
+                return ExpansionTile(
+                  title: Text('$grado° Curso'),
+                  children: secciones.entries.map((seccionEntry) {
+                    final seccion = seccionEntry.key;
+                    final alumnos = seccionEntry.value;
+
+                    return ExpansionTile(
+                      title: Text(
+                        'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minWidth: MediaQuery.of(context).size.width,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                      children: [
+                        // ENCABEZADO
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minWidth: MediaQuery.of(context).size.width,
                             ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 30,
-                                  child: Center(
-                                    child: Text(
-                                      alumno['numero_lista'].toString(),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  width: 1,
-                                  height: 24,
-                                  color: Colors.grey.shade400,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                  ),
-                                ),
-                                // Nombre flexible sin estilo azul ni subrayado
-                                SizedBox(
-                                  width: 250,
-                                  child: GestureDetector(
-                                    onTap: () =>
-                                        mostrarDialogoClasificacion(alumno),
-                                    child: Text(
-                                      '${alumno['nombre']} ${alumno['apellido']}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        decoration: TextDecoration.none,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Row(
+                                children: const [
+                                  SizedBox(
+                                    width: 30,
+                                    child: Center(
+                                      child: Text(
+                                        'Nro',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: 10),
+                                  SizedBox(
+                                    // Se deja flexible sin ancho fijo
+                                    width: 250,
+                                    child: Text(
+                                      'Nombre y Apellido',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  // Ya no hay columna Evaluación ni colores aquí
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
+
+                        // FILAS DE ALUMNOS
+                        ...alumnos.map((alumno) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey.shade400,
+                                  width: 0.5,
+                                ),
+                              ),
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: MediaQuery.of(context).size.width,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 30,
+                                        child: Center(
+                                          child: Text(
+                                            alumno['numero_lista'].toString(),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 1,
+                                        height: 24,
+                                        color: Colors.grey.shade400,
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                        ),
+                                      ),
+                                      // Nombre flexible sin estilo azul ni subrayado
+                                      SizedBox(
+                                        width: 250,
+                                        child: GestureDetector(
+                                          onTap: () =>
+                                              mostrarDialogoClasificacion(
+                                                alumno,
+                                              ),
+                                          child: Text(
+                                            '${alumno['nombre']} ${alumno['apellido']}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              decoration: TextDecoration.none,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ],
                     );
                   }).toList(),
-                ],
-              );
-            }).toList(),
-          );
-        }).toList(),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
