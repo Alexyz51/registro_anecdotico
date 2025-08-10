@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EscolarBasicaScreen extends StatefulWidget {
   const EscolarBasicaScreen({super.key});
@@ -12,7 +13,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
   bool estaCargando = true;
   Map<String, Map<String, List<Map<String, dynamic>>>> datos = {};
   Map<String, String> usuarioActual = {
-    'cargo': '',
+    'rolReal': '',
     'nombre': '',
     'apellido': '',
   };
@@ -79,7 +80,13 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
   }
 
   Future<void> cargarUsuarioActual() async {
-    String uidActual = 'uid_usuario_autenticado';
+    User? usuario = FirebaseAuth.instance.currentUser;
+
+    if (usuario == null) {
+      return;
+    }
+
+    String uidActual = usuario.uid;
 
     final docUser = await FirebaseFirestore.instance
         .collection('users')
@@ -89,7 +96,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
     if (docUser.exists) {
       final data = docUser.data()!;
       setState(() {
-        usuarioActual['cargo'] = data['cargo'] ?? '';
+        usuarioActual['rolReal'] = data['rolReal'] ?? '';
         usuarioActual['nombre'] = data['nombre'] ?? '';
         usuarioActual['apellido'] = data['apellido'] ?? '';
       });
@@ -112,102 +119,259 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
       'seccion': alumno['seccion'],
       'nivel': alumno['nivel'],
       'registrado_por':
-          '${usuarioActual['cargo']} ${usuarioActual['nombre']} ${usuarioActual['apellido']}',
+          '${usuarioActual['rolReal']} ${usuarioActual['nombre']} ${usuarioActual['apellido']}',
     };
 
     await FirebaseFirestore.instance.collection('records').add(registro);
   }
 
-  Future<void> mostrarDialogoRegistro(
-    Map<String, dynamic> alumno,
-    String color,
-  ) async {
+  Future<void> mostrarDialogoClasificacion(Map<String, dynamic> alumno) async {
     final _formKey = GlobalKey<FormState>();
-    String descripcion = '';
-    String comentario = '';
+    final TextEditingController comentarioController = TextEditingController();
+    final TextEditingController otrosController = TextEditingController();
+
+    final List<String> conductasFrecuentes = [
+      'No entrega tarea',
+      'No mantiene una conducta apropiada',
+      'Ausencia justificada',
+      'Ausencia injustificada',
+      'Llegada tardía',
+      'No usa el uniforme correspondiente',
+      'Trae objetos distractores en la institución',
+      'Ausente con reposo médico',
+    ];
 
     await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(
-            'Registrar conducta - ${color[0].toUpperCase()}${color.substring(1)}',
-          ),
-          content: Form(
-            key: _formKey,
-            child: SizedBox(
-              width: 300,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      maxLines: 2,
-                      decoration: const InputDecoration(
-                        labelText: 'Descripción del suceso',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'La descripción es obligatoria';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        descripcion = value!.trim();
-                      },
+        final screenWidth = MediaQuery.of(context).size.width;
+        final dialogWidth = screenWidth > 600 ? 500.0 : screenWidth * 0.9;
+
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            // VARIABLES DE ESTADO MOVIDAS AQUÍ
+            String? colorSeleccionado;
+            Map<String, bool> conductasSeleccionadas = {
+              for (var c in conductasFrecuentes) c: false,
+            };
+            bool otrosSeleccionado = false;
+
+            return AlertDialog(
+              title: const Text(
+                'Registrar conducta',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              content: Container(
+                width: dialogWidth,
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Clasificación',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                setStateDialog(() {
+                                  colorSeleccionado = 'verde';
+                                });
+                              },
+                              child: CircleAvatar(
+                                backgroundColor: Colors.green,
+                                radius: 9,
+                                child: colorSeleccionado == 'verde'
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 14,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () {
+                                setStateDialog(() {
+                                  colorSeleccionado = 'amarillo';
+                                });
+                              },
+                              child: CircleAvatar(
+                                backgroundColor: Colors.amber,
+                                radius: 9,
+                                child: colorSeleccionado == 'amarillo'
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 14,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () {
+                                setStateDialog(() {
+                                  colorSeleccionado = 'rojo';
+                                });
+                              },
+                              child: CircleAvatar(
+                                backgroundColor: Colors.red,
+                                radius: 9,
+                                child: colorSeleccionado == 'rojo'
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 14,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Conductas frecuentes:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        ...conductasFrecuentes.map((conducta) {
+                          return CheckboxListTile(
+                            title: Text(conducta),
+                            value: conductasSeleccionadas[conducta],
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (bool? value) {
+                              setStateDialog(() {
+                                conductasSeleccionadas[conducta] =
+                                    value ?? false;
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          );
+                        }).toList(),
+                        CheckboxListTile(
+                          title: const Text('Otros'),
+                          value: otrosSeleccionado,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (bool? value) {
+                            setStateDialog(() {
+                              otrosSeleccionado = value ?? false;
+                              if (!otrosSeleccionado) {
+                                otrosController.clear();
+                              }
+                            });
+                          },
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        if (otrosSeleccionado)
+                          TextFormField(
+                            controller: otrosController,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              labelText: 'Describa la conducta personalizada',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (otrosSeleccionado &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'Debe describir la conducta personalizada';
+                              }
+                              return null;
+                            },
+                          ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: comentarioController,
+                          maxLines: 3,
+                          decoration: const InputDecoration(
+                            labelText: 'Sugerencias / Reflexión',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Debe ingresar una sugerencia o reflexión (puede ser un guion)';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Comentario',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'El comentario es obligatorio';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        comentario = value!.trim();
-                      },
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) return;
 
-                  await registrarConducta(
-                    color: color,
-                    descripcion: descripcion,
-                    comentario: comentario,
-                    alumno: alumno,
-                  );
+                    if (colorSeleccionado == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Debe seleccionar un color'),
+                        ),
+                      );
+                      return;
+                    }
 
-                  Navigator.pop(context);
+                    List<String> conductasSeleccionadasLista =
+                        conductasSeleccionadas.entries
+                            .where((e) => e.value)
+                            .map((e) => e.key)
+                            .toList();
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Registro guardado de ${alumno['nombre']}'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Guardar'),
-            ),
-          ],
+                    if (otrosSeleccionado &&
+                        otrosController.text.trim().isNotEmpty) {
+                      conductasSeleccionadasLista.add(
+                        otrosController.text.trim(),
+                      );
+                    }
+
+                    if (conductasSeleccionadasLista.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Debe seleccionar al menos una conducta o escribir en Otros',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final descripcion = conductasSeleccionadasLista.join(', ');
+                    final comentario = comentarioController.text.trim();
+
+                    await registrarConducta(
+                      color: colorSeleccionado!,
+                      descripcion: descripcion,
+                      comentario: comentario,
+                      alumno: alumno,
+                    );
+
+                    Navigator.pop(context);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Registro guardado de ${alumno['nombre']} ${alumno['apellido']}',
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -238,7 +402,6 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 children: [
-                  // ENCABEZADO
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: ConstrainedBox(
@@ -290,8 +453,6 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                       ),
                     ),
                   ),
-
-                  // FILAS DE ALUMNOS
                   ...alumnos.map((alumno) {
                     return Container(
                       decoration: BoxDecoration(
@@ -360,10 +521,8 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                                           color: Colors.green,
                                           size: 22,
                                         ),
-                                        onPressed: () => mostrarDialogoRegistro(
-                                          alumno,
-                                          'verde',
-                                        ),
+                                        onPressed: () =>
+                                            mostrarDialogoClasificacion(alumno),
                                         tooltip: 'Marcar conducta verde',
                                       ),
                                       IconButton(
@@ -372,10 +531,8 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                                           color: Colors.amber,
                                           size: 22,
                                         ),
-                                        onPressed: () => mostrarDialogoRegistro(
-                                          alumno,
-                                          'amarillo',
-                                        ),
+                                        onPressed: () =>
+                                            mostrarDialogoClasificacion(alumno),
                                         tooltip: 'Marcar conducta amarillo',
                                       ),
                                       IconButton(
@@ -384,10 +541,8 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                                           color: Colors.red,
                                           size: 22,
                                         ),
-                                        onPressed: () => mostrarDialogoRegistro(
-                                          alumno,
-                                          'rojo',
-                                        ),
+                                        onPressed: () =>
+                                            mostrarDialogoClasificacion(alumno),
                                         tooltip: 'Marcar conducta rojo',
                                       ),
                                     ],

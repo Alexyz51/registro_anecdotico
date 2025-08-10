@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:registro_anecdotico/src/pages/widgets/registros_bottom_sheet.dart'; // Ajusta la ruta según tu proyecto
 import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
+import '../widgets/breadcrumb_navigation.dart';
 
 class RecordsSummaryScreen extends StatefulWidget {
   const RecordsSummaryScreen({Key? key}) : super(key: key);
@@ -15,7 +16,6 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
 
   bool estaCargando = true;
 
-  // Datos organizados: grado -> sección -> lista de alumnos
   Map<String, Map<String, List<Map<String, dynamic>>>> datos = {};
 
   @override
@@ -51,33 +51,28 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
         final alumnoData = alumnoDoc.data();
         final alumnoId = alumnoDoc.id;
 
-        final nivelRaw = alumnoData['nivel'] ?? '';
-        final nivel = nivelRaw.toString().toLowerCase().trim();
-
+        final nivel = (alumnoData['nivel'] ?? '').toString().toLowerCase();
         if (nivel != 'nivel medio' && nivel != 'escolar basica') {
-          continue; // filtro niveles
+          continue;
         }
-
-        final gradoRaw = alumnoData['grado'] ?? 'sin grado';
-        final grado = gradoRaw.toString().toLowerCase().trim();
-
-        final seccionRaw = alumnoData['seccion'] ?? 'sin sección';
-        final seccion = seccionRaw.toString().toLowerCase().trim();
 
         final listaRegistros = registrosPorAlumno[alumnoId] ?? [];
 
-        final alumnoCompleto = Map<String, dynamic>.from(alumnoData);
-        alumnoCompleto['docId'] = alumnoId;
-        alumnoCompleto['registros'] = listaRegistros;
-        alumnoCompleto['cantidadRegistros'] = listaRegistros.length;
-        alumnoCompleto['nivel'] = nivel;
-        alumnoCompleto['grado'] = grado;
-        alumnoCompleto['seccion'] = seccion;
+        if (listaRegistros.isNotEmpty) {
+          final alumnoCompleto = Map<String, dynamic>.from(alumnoData);
+          alumnoCompleto['docId'] = alumnoId;
+          alumnoCompleto['registros'] = listaRegistros;
+          alumnoCompleto['cantidadRegistros'] = listaRegistros.length;
+          alumnoCompleto['nivel'] = nivel;
+          alumnoCompleto['grado'] =
+              alumnoCompleto['grado']?.toString() ?? 'Sin grado';
+          alumnoCompleto['seccion'] =
+              alumnoCompleto['seccion']?.toString() ?? 'Sin sección';
 
-        alumnosConRegistros.add(alumnoCompleto);
+          alumnosConRegistros.add(alumnoCompleto);
+        }
       }
 
-      // Organizar por grado y sección
       Map<String, Map<String, List<Map<String, dynamic>>>> datosTemp = {};
 
       for (var alumno in alumnosConRegistros) {
@@ -89,7 +84,6 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
         datosTemp[grado]![seccion]!.add(alumno);
       }
 
-      // Ordenar alumnos por número_lista
       for (var grado in datosTemp.keys) {
         for (var seccion in datosTemp[grado]!.keys) {
           datosTemp[grado]![seccion]!.sort(
@@ -122,14 +116,21 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const cremita = Color.fromARGB(248, 252, 230, 230);
+    const Color cremitaGris = Color(0xFFC7B7A3);
+    final grisClarito = Colors.grey.shade200;
+    final grisMedio = Colors.grey.shade300;
+    final rojoClaro = Colors.red.shade100;
+    String hexColor = '#8e0b13';
+    int colorValue = int.parse(hexColor.substring(1), radix: 16);
+    Color miColor = Color(colorValue | 0xFF000000);
+    const cremita = const Color.fromARGB(248, 252, 230, 230);
     const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
+    //Paleta de colores habitual
 
     // Orden personalizado para grados
     final ordenEscolarBasica = ['7', '8', '9'];
     final ordenNivelMedio = ['1', '2', '3'];
 
-    // Extraer grados que hay en datos para cada nivel
     List<String> gradosEscolarBasica = datos.keys
         .where((g) => ordenEscolarBasica.any((o) => g.contains(o)))
         .toList();
@@ -137,7 +138,6 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
         .where((g) => ordenNivelMedio.any((o) => g.contains(o)))
         .toList();
 
-    // Ordenarlos según la lista fija
     gradosEscolarBasica.sort((a, b) {
       int ia = ordenEscolarBasica.indexWhere((o) => a.contains(o));
       int ib = ordenEscolarBasica.indexWhere((o) => b.contains(o));
@@ -160,6 +160,7 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
     }
 
     return Scaffold(
+      backgroundColor: cremita,
       appBar: AppBar(
         backgroundColor: cremita,
         iconTheme: const IconThemeData(color: rojoOscuro),
@@ -192,37 +193,88 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
       ),
       body: ListView(
         children: [
-          // Texto fijo para Escolar Básica
+          // Breadcrumb con fondo gris clarito y padding
           Container(
-            color: Colors.grey.shade300,
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: BreadcrumbBar(
+              items: [
+                BreadcrumbItem(
+                  recorrido: 'Secciones',
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, 'admin_home');
+                  },
+                  textoColor: rojoOscuro,
+                ),
+                BreadcrumbItem(recorrido: 'Reportes', textoColor: rojoOscuro),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 0),
+
+          // Título fijo Escolar Básica con fondo gris clarito y bordes arriba y abajo
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 14),
             alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: grisClarito,
+              border: Border(
+                top: BorderSide(color: rojoOscuro.withOpacity(0.3), width: 1),
+                bottom: BorderSide(
+                  color: rojoOscuro.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+            ),
             child: const Text(
               'Escolar Básica',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: rojoOscuro,
+                letterSpacing: 1.1,
               ),
             ),
           ),
 
-          // Grados Escolar Básica con secciones y alumnos
+          const SizedBox(height: 10),
+
+          // Grados Escolar Básica con ExpansionTiles personalizados
           ...gradosEscolarBasica.map((grado) {
             final secciones = datos[grado]!;
             return ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 6,
+              ),
+              iconColor: rojoOscuro,
+              collapsedIconColor: rojoOscuro.withOpacity(0.6),
               title: Text(
                 '$grado° Grado',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: rojoOscuro,
+                ),
               ),
               children: secciones.entries.map((seccionEntry) {
                 final seccion = seccionEntry.key;
                 final alumnos = seccionEntry.value;
 
                 return ExpansionTile(
+                  tilePadding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 4,
+                  ),
+                  iconColor: rojoOscuro,
+                  collapsedIconColor: rojoOscuro.withOpacity(0.6),
                   title: Text(
                     'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: rojoOscuro,
+                    ),
                   ),
                   children: alumnos.map((alumno) {
                     return ListTile(
@@ -231,7 +283,10 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                         child: Center(
                           child: Text(
                             alumno['numero_lista']?.toString() ?? '',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: rojoOscuro,
+                            ),
                           ),
                         ),
                       ),
@@ -246,8 +301,8 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                                 ? TextDecoration.underline
                                 : TextDecoration.none,
                             color: alumno['cantidadRegistros'] > 0
-                                ? Colors.blue
-                                : Colors.black87,
+                                ? Colors.red.shade700
+                                : rojoOscuro,
                           ),
                         ),
                       ),
@@ -258,8 +313,8 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: alumno['cantidadRegistros'] > 0
-                              ? Colors.blue.shade100
-                              : Colors.grey.shade300,
+                              ? rojoClaro
+                              : grisMedio,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -267,7 +322,7 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: alumno['cantidadRegistros'] > 0
-                                ? Colors.blue.shade800
+                                ? Colors.red.shade900
                                 : Colors.grey.shade600,
                           ),
                         ),
@@ -279,37 +334,103 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
             );
           }),
 
-          // Texto fijo para Nivel Medio
+          const SizedBox(height: 12),
+
+          // Título fijo Nivel Medio
           Container(
-            color: Colors.grey.shade300,
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: grisClarito,
+              border: Border(
+                top: BorderSide(color: rojoOscuro.withOpacity(0.3), width: 1),
+                bottom: BorderSide(
+                  color: rojoOscuro.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+            ),
             child: const Text(
               'Nivel Medio',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: rojoOscuro,
+                letterSpacing: 1.1,
               ),
             ),
           ),
 
-          // Grados Nivel Medio con secciones y alumnos
+          const SizedBox(height: 0),
+
+          // Grados Nivel Medio
           ...gradosNivelMedio.map((grado) {
             final secciones = datos[grado]!;
             return ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 2,
+              ),
+              iconColor: rojoOscuro,
+              collapsedIconColor: rojoOscuro.withOpacity(0.6),
               title: Text(
                 '$grado° Curso',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: rojoOscuro,
+                ),
               ),
-              children: secciones.entries.map((seccionEntry) {
+
+              children: /*[
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 60,
+                        child: Text(
+                          'N° Lista',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: rojoOscuro,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Nombre y Apellido',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: rojoOscuro,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                ...*/ secciones.entries.map((seccionEntry) {
                 final seccion = seccionEntry.key;
                 final alumnos = seccionEntry.value;
 
                 return ExpansionTile(
+                  tilePadding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 4,
+                  ),
+                  iconColor: rojoOscuro,
+                  collapsedIconColor: rojoOscuro.withOpacity(0.6),
                   title: Text(
                     'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: rojoOscuro,
+                    ),
                   ),
                   children: alumnos.map((alumno) {
                     return ListTile(
@@ -318,7 +439,10 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                         child: Center(
                           child: Text(
                             alumno['numero_lista']?.toString() ?? '',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: rojoOscuro,
+                            ),
                           ),
                         ),
                       ),
@@ -333,8 +457,8 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                                 ? TextDecoration.underline
                                 : TextDecoration.none,
                             color: alumno['cantidadRegistros'] > 0
-                                ? Colors.blue
-                                : Colors.black87,
+                                ? Colors.red.shade700
+                                : rojoOscuro,
                           ),
                         ),
                       ),
@@ -345,8 +469,8 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: alumno['cantidadRegistros'] > 0
-                              ? Colors.blue.shade100
-                              : Colors.grey.shade300,
+                              ? rojoClaro
+                              : grisMedio,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -354,7 +478,7 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: alumno['cantidadRegistros'] > 0
-                                ? Colors.blue.shade800
+                                ? Colors.red.shade900
                                 : Colors.grey.shade600,
                           ),
                         ),
@@ -365,6 +489,9 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
               }).toList(),
             );
           }),
+          const SizedBox(
+            height: 20,
+          ), // Espacio final para que no quede pegado abajo
         ],
       ),
     );
