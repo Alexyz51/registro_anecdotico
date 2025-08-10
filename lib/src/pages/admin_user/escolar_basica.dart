@@ -142,11 +142,12 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
       'Ausente con reposo médico',
     ];
 
-    // Variables para estado, definidas aquí para que persistan dentro del diálogo
     Map<String, bool> conductasSeleccionadas = {
       for (var c in conductasFrecuentes) c: false,
     };
     bool otrosSeleccionado = false;
+
+    final ScrollController scrollController = ScrollController();
 
     await showDialog(
       context: context,
@@ -164,12 +165,14 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
               content: SizedBox(
                 width: dialogWidth,
                 height: MediaQuery.of(context).size.height * 0.6,
-                child: SingleChildScrollView(
+                child: Scrollbar(
+                  controller: scrollController, // <-- Asignar controller aquí
+                  thumbVisibility: true,
                   child: Form(
                     key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: ListView(
+                      controller: scrollController, // <-- Y aquí también
+                      padding: EdgeInsets.zero,
                       children: [
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -238,13 +241,10 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-
-                        // Aquí el título cambiado
                         const Text(
                           'Descripción del Suceso:',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-
                         ...conductasFrecuentes.map((conducta) {
                           return CheckboxListTile(
                             title: Text(conducta),
@@ -259,7 +259,6 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                             contentPadding: EdgeInsets.zero,
                           );
                         }).toList(),
-
                         CheckboxListTile(
                           title: const Text('Otros'),
                           value: otrosSeleccionado,
@@ -275,24 +274,25 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                           contentPadding: EdgeInsets.zero,
                         ),
                         if (otrosSeleccionado)
-                          TextFormField(
-                            controller: otrosController,
-                            maxLines: 2,
-                            decoration: const InputDecoration(
-                              labelText: 'Describa la conducta personalizada',
-                              border: OutlineInputBorder(),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextFormField(
+                              controller: otrosController,
+                              maxLines: 2,
+                              decoration: const InputDecoration(
+                                labelText: 'Describa la conducta personalizada',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (otrosSeleccionado &&
+                                    (value == null || value.trim().isEmpty)) {
+                                  return 'Debe describir la conducta personalizada';
+                                }
+                                return null;
+                              },
                             ),
-                            validator: (value) {
-                              if (otrosSeleccionado &&
-                                  (value == null || value.trim().isEmpty)) {
-                                return 'Debe describir la conducta personalizada';
-                              }
-                              return null;
-                            },
                           ),
                         const SizedBox(height: 16),
-
-                        // Campo fijo "Sugerencia / Reflexión"
                         TextFormField(
                           controller: comentarioController,
                           maxLines: 3,
@@ -314,7 +314,12 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    comentarioController.dispose();
+                    otrosController.dispose();
+                    scrollController.dispose(); // Liberar controller
+                    Navigator.pop(context);
+                  },
                   child: const Text('Cancelar'),
                 ),
                 ElevatedButton(
@@ -363,6 +368,10 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                       comentario: comentario,
                       alumno: alumno,
                     );
+
+                    comentarioController.dispose();
+                    otrosController.dispose();
+                    scrollController.dispose();
 
                     Navigator.pop(context);
 
