@@ -407,20 +407,167 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color cremitaGris = Color(0xFFC7B7A3);
-    final grisClarito = Colors.grey.shade200;
-    final grisMedio = Colors.grey.shade300;
-    final rojoClaro = Colors.red.shade100;
-    String hexColor = '#8e0b13';
-    int colorValue = int.parse(hexColor.substring(1), radix: 16);
-    Color miColor = Color(colorValue | 0xFF000000);
-    const cremita = const Color.fromARGB(248, 252, 230, 230);
+    const Color cremita = Color.fromARGB(248, 252, 230, 230);
     const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
-    //Paleta de colores habitual
+
     if (estaCargando) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    Map<String, Map<String, List>> seccionA = {};
+    Map<String, Map<String, List>> seccionB = {};
+
+    datos.forEach((grado, secciones) {
+      secciones.forEach((seccion, alumnos) {
+        if (seccion.toUpperCase() == 'A') {
+          seccionA.putIfAbsent(grado, () => {});
+          seccionA[grado]![seccion] = alumnos;
+        } else if (seccion.toUpperCase() == 'B') {
+          seccionB.putIfAbsent(grado, () => {});
+          seccionB[grado]![seccion] = alumnos;
+        }
+      });
+    });
+
+    Widget construirSeccion(
+      String nombreSeccion,
+      Map<String, Map<String, List>> data,
+    ) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              'Sección $nombreSeccion',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          ...data.entries.map((gradoEntry) {
+            final grado = gradoEntry.key;
+            final secciones = gradoEntry.value;
+
+            final List alumnosUnificados = secciones.values
+                .expand((lista) => lista)
+                .toList();
+
+            return ExpansionTile(
+              title: Text('$grado° Curso'),
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: MediaQuery.of(context).size.width,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: const [
+                          SizedBox(
+                            width: 30,
+                            child: Center(
+                              child: Text(
+                                'Nro',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          SizedBox(
+                            width: 250,
+                            child: Text(
+                              'Nombre y Apellido',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                ...alumnosUnificados.map((alumno) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.grey.shade400,
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: MediaQuery.of(context).size.width,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 30,
+                                child: Center(
+                                  child: Text(
+                                    alumno['numero_lista'].toString(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: 1,
+                                height: 24,
+                                color: Colors.grey.shade400,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                              ),
+                              SizedBox(
+                                width: 250,
+                                child: GestureDetector(
+                                  onTap: () =>
+                                      mostrarDialogoClasificacion(alumno),
+                                  child: Text(
+                                    '${alumno['nombre']} ${alumno['apellido']}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      decoration: TextDecoration.none,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            );
+          }).toList(),
+        ],
+      );
+    } // <-- AQUÍ termina construirSeccion
+
+    // Ahora sí retornamos el Scaffold principal de la pantalla
     return Scaffold(
       backgroundColor: cremita,
       appBar: AppBar(
@@ -445,16 +592,12 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
           ),
         ),
         automaticallyImplyLeading: true,
-        elevation: 0, // para que no tenga sombra propia
+        elevation: 0,
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(4.0), // altura de la barra separadora
-          child: Container(
-            color: rojoOscuro, // tu color rojo oscuro declarado
-            height: 5.0,
-          ),
+          preferredSize: const Size.fromHeight(4.0),
+          child: Container(color: rojoOscuro, height: 5.0),
         ),
       ),
-
       body: Column(
         children: [
           Padding(
@@ -473,139 +616,11 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
           ),
           Expanded(
             child: ListView(
-              children: datos.entries.map((gradoEntry) {
-                final grado = gradoEntry.key;
-                final secciones = gradoEntry.value;
-
-                return ExpansionTile(
-                  title: Text('$grado° Curso'),
-                  children: secciones.entries.map((seccionEntry) {
-                    final seccion = seccionEntry.key;
-                    final alumnos = seccionEntry.value;
-
-                    return ExpansionTile(
-                      title: Text(
-                        'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      children: [
-                        // ENCABEZADO
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minWidth: MediaQuery.of(context).size.width,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Row(
-                                children: const [
-                                  SizedBox(
-                                    width: 30,
-                                    child: Center(
-                                      child: Text(
-                                        'Nro',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 10),
-                                  SizedBox(
-                                    // Se deja flexible sin ancho fijo
-                                    width: 250,
-                                    child: Text(
-                                      'Nombre y Apellido',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  // Ya no hay columna Evaluación ni colores aquí
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // FILAS DE ALUMNOS
-                        ...alumnos.map((alumno) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.grey.shade400,
-                                  width: 0.5,
-                                ),
-                              ),
-                            ),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minWidth: MediaQuery.of(context).size.width,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width: 30,
-                                        child: Center(
-                                          child: Text(
-                                            alumno['numero_lista'].toString(),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        width: 1,
-                                        height: 24,
-                                        color: Colors.grey.shade400,
-                                        margin: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                        ),
-                                      ),
-                                      // Nombre flexible sin estilo azul ni subrayado
-                                      SizedBox(
-                                        width: 250,
-                                        child: GestureDetector(
-                                          onTap: () =>
-                                              mostrarDialogoClasificacion(
-                                                alumno,
-                                              ),
-                                          child: Text(
-                                            '${alumno['nombre']} ${alumno['apellido']}',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              decoration: TextDecoration.none,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ],
-                    );
-                  }).toList(),
-                );
-              }).toList(),
+              children: [
+                construirSeccion('A', seccionA),
+                const SizedBox(height: 20),
+                construirSeccion('B', seccionB),
+              ],
             ),
           ),
         ],
