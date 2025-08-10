@@ -15,11 +15,21 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
 
   bool _cargando = true;
   String? _cargoSeleccionado;
-  final List<String> cargosAdmin = [
-    'Director',
-    'Directora',
-    'Secretario',
-    'Secretaria',
+  final List<String> cargos = [
+    'Docente del Área Administrativa',
+    'Docente de Lengua',
+    'Docente de Matemática',
+    'Docente de Ciencias Naturales',
+    'Docente de Historia y Geografía',
+    'Docente de Formación Ética',
+    'Docente de Educación Física',
+    'Docente de Artes',
+    'Docente de Música',
+    'Docente de Desarrollo Personal',
+    'Docente de Informática',
+    'Docente de Física y Química',
+    'Docente de Economía y Gestión',
+    'Docente de Orientación Educacional',
   ];
 
   String? nombre;
@@ -75,30 +85,50 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Es tu primera vez aquí'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Por favor, selecciona tu cargo'),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Cargo',
-                  border: OutlineInputBorder(),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: 300,
+              maxWidth: 400,
+              maxHeight: 400, // Un poco más alto para mejor scroll
+            ),
+            child: SingleChildScrollView(
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Por favor, selecciona tu cargo'),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          labelText: 'Cargo',
+                          border: OutlineInputBorder(),
+                        ),
+                        isExpanded: true,
+                        items: cargos
+                            .map(
+                              (cargo) => DropdownMenuItem(
+                                value: cargo,
+                                child: Text(
+                                  cargo,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        value: _cargoSeleccionado,
+                        onChanged: (valor) {
+                          setState(() {
+                            _cargoSeleccionado = valor;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                items: cargosAdmin
-                    .map(
-                      (cargo) =>
-                          DropdownMenuItem(value: cargo, child: Text(cargo)),
-                    )
-                    .toList(),
-                value: _cargoSeleccionado,
-                onChanged: (valor) {
-                  setState(() {
-                    _cargoSeleccionado = valor;
-                  });
-                },
               ),
-            ],
+            ),
           ),
           actions: [
             TextButton(
@@ -171,7 +201,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
                     const SizedBox(height: 10),
                     if (rolReal != null && nombre != null && apellido != null)
                       Text(
-                        '$rolReal $nombre $apellido',
+                        '$nombre $apellido\n$rolReal',
                         style: const TextStyle(
                           color: cremita,
                           fontSize: 16,

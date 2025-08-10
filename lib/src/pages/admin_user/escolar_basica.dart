@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
 
 class EscolarBasicaScreen extends StatefulWidget {
   const EscolarBasicaScreen({super.key});
@@ -147,11 +148,12 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
     };
     bool otrosSeleccionado = false;
 
-    final ScrollController scrollController = ScrollController();
+    // Contexto para SnackBar fuera del diálogo
+    final scaffoldContext = context;
 
     await showDialog(
       context: context,
-      builder: (context) {
+      builder: (contextDialog) {
         final screenWidth = MediaQuery.of(context).size.width;
         final dialogWidth = screenWidth > 600 ? 500.0 : screenWidth * 0.9;
 
@@ -165,14 +167,12 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
               content: SizedBox(
                 width: dialogWidth,
                 height: MediaQuery.of(context).size.height * 0.6,
-                child: Scrollbar(
-                  controller: scrollController, // <-- Asignar controller aquí
-                  thumbVisibility: true,
+                child: SingleChildScrollView(
                   child: Form(
                     key: _formKey,
-                    child: ListView(
-                      controller: scrollController, // <-- Y aquí también
-                      padding: EdgeInsets.zero,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -241,10 +241,12 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
+
                         const Text(
                           'Descripción del Suceso:',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
+
                         ...conductasFrecuentes.map((conducta) {
                           return CheckboxListTile(
                             title: Text(conducta),
@@ -259,6 +261,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                             contentPadding: EdgeInsets.zero,
                           );
                         }).toList(),
+
                         CheckboxListTile(
                           title: const Text('Otros'),
                           value: otrosSeleccionado,
@@ -274,25 +277,23 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                           contentPadding: EdgeInsets.zero,
                         ),
                         if (otrosSeleccionado)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: TextFormField(
-                              controller: otrosController,
-                              maxLines: 2,
-                              decoration: const InputDecoration(
-                                labelText: 'Describa la conducta personalizada',
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (otrosSeleccionado &&
-                                    (value == null || value.trim().isEmpty)) {
-                                  return 'Debe describir la conducta personalizada';
-                                }
-                                return null;
-                              },
+                          TextFormField(
+                            controller: otrosController,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              labelText: 'Describa la conducta personalizada',
+                              border: OutlineInputBorder(),
                             ),
+                            validator: (value) {
+                              if (otrosSeleccionado &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'Debe describir la conducta personalizada';
+                              }
+                              return null;
+                            },
                           ),
                         const SizedBox(height: 16),
+
                         TextFormField(
                           controller: comentarioController,
                           maxLines: 3,
@@ -314,20 +315,18 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    comentarioController.dispose();
-                    otrosController.dispose();
-                    scrollController.dispose(); // Liberar controller
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(contextDialog),
                   child: const Text('Cancelar'),
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
+                    if (!_formKey.currentState!.validate()) {
+                      print('Validación falló');
+                      return;
+                    }
 
                     if (colorSeleccionado == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                         const SnackBar(
                           content: Text('Debe seleccionar un color'),
                         ),
@@ -349,7 +348,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                     }
 
                     if (conductasSeleccionadasLista.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                         const SnackBar(
                           content: Text(
                             'Debe seleccionar al menos una conducta o escribir en Otros',
@@ -359,23 +358,31 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                       return;
                     }
 
-                    final descripcion = conductasSeleccionadasLista.join(', ');
+                    final descripcion = conductasSeleccionadasLista
+                        .map((c) => '• $c')
+                        .join('\n');
                     final comentario = comentarioController.text.trim();
 
-                    await registrarConducta(
-                      color: colorSeleccionado!,
-                      descripcion: descripcion,
-                      comentario: comentario,
-                      alumno: alumno,
-                    );
+                    try {
+                      await registrarConducta(
+                        color: colorSeleccionado!,
+                        descripcion: descripcion,
+                        comentario: comentario,
+                        alumno: alumno,
+                      );
+                    } catch (e) {
+                      print('Error guardando conducta: $e');
+                      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                        SnackBar(
+                          content: Text('Error al guardar registro: $e'),
+                        ),
+                      );
+                      return;
+                    }
 
-                    comentarioController.dispose();
-                    otrosController.dispose();
-                    scrollController.dispose();
+                    Navigator.pop(contextDialog);
 
-                    Navigator.pop(context);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                       SnackBar(
                         content: Text(
                           'Registro guardado de ${alumno['nombre']} ${alumno['apellido']}',
@@ -395,12 +402,53 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color cremitaGris = Color(0xFFC7B7A3);
+    final grisClarito = Colors.grey.shade200;
+    final grisMedio = Colors.grey.shade300;
+    final rojoClaro = Colors.red.shade100;
+    String hexColor = '#8e0b13';
+    int colorValue = int.parse(hexColor.substring(1), radix: 16);
+    Color miColor = Color(colorValue | 0xFF000000);
+    const cremita = const Color.fromARGB(248, 252, 230, 230);
+    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
+    //Paleta de colores habitual
+
     if (estaCargando) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Escolar Básica')),
+      backgroundColor: cremita,
+      appBar: AppBar(
+        backgroundColor: cremita,
+        iconTheme: const IconThemeData(color: rojoOscuro),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AdminUserHomeScreen(),
+              ),
+            );
+          },
+        ),
+        title: const Text(
+          'Registro Anecdotico',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(226, 201, 183, 171),
+          ),
+        ),
+        automaticallyImplyLeading: true,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4.0),
+          child: Container(color: rojoOscuro, height: 5.0),
+        ),
+      ),
       body: ListView(
         children: datos.entries.map((gradoEntry) {
           final grado = gradoEntry.key;
