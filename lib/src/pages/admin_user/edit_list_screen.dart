@@ -172,18 +172,41 @@ class _EditListScreenState extends State<EditListScreen> {
     required String seccion,
     required String nivel,
     required int anio,
+    required int numeroLista, // nuevo
+    required String correoPadre, // nuevo
   }) async {
     final alumnos = datos[nivel]?[grado]?[seccion] ?? [];
-    final nuevoNumeroLista = alumnos.length + 1;
 
+    // Ordenar alumnos para revisar números
+    alumnos.sort(
+      (a, b) => (a['numero_lista'] as int).compareTo(b['numero_lista'] as int),
+    );
+
+    // Empezar batch para actualizar alumnos que necesitan subir número
+    final batch = FirebaseFirestore.instance.batch();
+
+    for (final alumno in alumnos) {
+      int nLista = alumno['numero_lista'] as int;
+      if (nLista >= numeroLista) {
+        final docRef = FirebaseFirestore.instance
+            .collection('students')
+            .doc(alumno['docId']);
+        batch.update(docRef, {'numero_lista': nLista + 1});
+      }
+    }
+
+    await batch.commit();
+
+    // Ahora agregar el alumno nuevo con el númeroLista indicado
     await FirebaseFirestore.instance.collection('students').add({
       'nombre': nombre,
       'apellido': apellido,
       'grado': grado,
       'seccion': seccion,
       'nivel': nivel,
-      'numero_lista': nuevoNumeroLista,
+      'numero_lista': numeroLista,
       'anio': anio,
+      'correo_padre': correoPadre,
     });
 
     await _cargaDeDatos();
@@ -193,10 +216,12 @@ class _EditListScreenState extends State<EditListScreen> {
     final _formKey = GlobalKey<FormState>();
     String nombre = '';
     String apellido = '';
+    String correoPadre = ''; // nuevo
     String? nivel;
     String? grado;
     String? seccion;
     int? anio;
+    int? numeroLista; // nuevo
 
     List<String> gradosDisponibles = [];
     List<String> seccionesDisponibles = [];
@@ -206,7 +231,6 @@ class _EditListScreenState extends State<EditListScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
-            // Actualizar listas según nivel seleccionado
             if (nivel == 'escolar basica') {
               gradosDisponibles = gradosEscolarBasica;
               seccionesDisponibles = seccionesEscolarBasica;
@@ -239,6 +263,14 @@ class _EditListScreenState extends State<EditListScreen> {
                             v == null || v.isEmpty ? 'Requerido' : null,
                         onSaved: (v) => apellido = v!.trim(),
                       ),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Correo del padre',
+                        ),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Requerido' : null,
+                        onSaved: (v) => correoPadre = v!.trim(),
+                      ),
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(labelText: 'Nivel'),
                         items: nivelesPermitidos
@@ -247,7 +279,7 @@ class _EditListScreenState extends State<EditListScreen> {
                                 value: e,
                                 child: Text(
                                   e[0].toUpperCase() + e.substring(1),
-                                ), // Capitalizar
+                                ),
                               ),
                             )
                             .toList(),
@@ -310,6 +342,19 @@ class _EditListScreenState extends State<EditListScreen> {
                         },
                         onSaved: (v) => anio = int.parse(v!),
                       ),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Número de lista',
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Requerido';
+                          if (int.tryParse(v) == null || int.parse(v) < 1)
+                            return 'Número inválido';
+                          return null;
+                        },
+                        onSaved: (v) => numeroLista = int.parse(v!),
+                      ),
                     ],
                   ),
                 ),
@@ -324,7 +369,6 @@ class _EditListScreenState extends State<EditListScreen> {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
 
-                      // Normalizar para guardar en Firestore
                       final nivelNorm = normalizar(nivel!);
                       final gradoNorm = normalizar(grado!);
                       final seccionNorm = normalizar(seccion!);
@@ -336,6 +380,8 @@ class _EditListScreenState extends State<EditListScreen> {
                         seccion: seccionNorm,
                         nivel: nivelNorm,
                         anio: anio!,
+                        numeroLista: numeroLista!,
+                        correoPadre: correoPadre,
                       );
 
                       Navigator.pop(context);
