@@ -213,6 +213,7 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
           const SizedBox(height: 0),
 
           // Título fijo Escolar Básica con fondo gris clarito y bordes arriba y abajo
+          /*
           Container(
             padding: const EdgeInsets.symmetric(vertical: 14),
             alignment: Alignment.center,
@@ -238,6 +239,20 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
           ),
 
           const SizedBox(height: 10),
+          */
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Text(
+              'Escolar Básica',
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: rojoOscuro,
+                //letterSpacing: 1.1,
+              ),
+            ),
+          ),
 
           // Grados Escolar Básica con ExpansionTiles personalizados
           ...gradosEscolarBasica.map((grado) {
@@ -337,6 +352,7 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
           const SizedBox(height: 12),
 
           // Título fijo Nivel Medio
+          /*
           Container(
             padding: const EdgeInsets.symmetric(vertical: 14),
             alignment: Alignment.center,
@@ -348,20 +364,35 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                   color: rojoOscuro.withOpacity(0.3),
                   width: 1,
                 ),
-              ),
+             ),
             ),
-            child: const Text(
+            child: 
+            const Text(
               'Nivel Medio',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: rojoOscuro,
-                letterSpacing: 1.1,
+                //letterSpacing: 1.1,
               ),
             ),
           ),
 
           const SizedBox(height: 0),
+          */
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Text(
+              'Nivel Medio',
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: rojoOscuro,
+                //letterSpacing: 1.1,
+              ),
+            ),
+          ),
 
           // Grados Nivel Medio
           ...gradosNivelMedio.map((grado) {
