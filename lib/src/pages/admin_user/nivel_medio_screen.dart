@@ -115,6 +115,9 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
     required String comentario,
     required Map<String, dynamic> alumno,
   }) async {
+    final usuarioActualFirebase = FirebaseAuth.instance.currentUser;
+    final String uidUsuario = usuarioActualFirebase?.uid ?? 'desconocido';
+
     final registro = {
       'studentId': alumno['docId'],
       'fecha': DateTime.now(),
@@ -125,7 +128,11 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
       'seccion': alumno['seccion'],
       'nivel': alumno['nivel'],
       'registrado_por':
-          '${usuarioActual['rolReal']} ${usuarioActual['nombre']} ${usuarioActual['apellido']}',
+          '${usuarioActual['nombre']} ${usuarioActual['apellido']} ${usuarioActual['rolReal']}',
+      // Solo rol real (sin nombre ni apellido) con P mayúscula:
+      'registradoPor': usuarioActual['rolReal'],
+      // UID con guion bajo y todo en minúscula:
+      'userId': uidUsuario,
     };
 
     await FirebaseFirestore.instance.collection('records').add(registro);
