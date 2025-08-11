@@ -16,7 +16,9 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
 
   bool estaCargando = true;
 
-  Map<String, Map<String, List<Map<String, dynamic>>>> datos = {};
+  // Variable donde se guardan los datos ya organizados: nivel -> sección -> grado -> lista de alumnos
+  Map<String, Map<String, Map<String, List<Map<String, dynamic>>>>>
+  datosPorNivelGuardados = {};
 
   @override
   void initState() {
@@ -67,40 +69,48 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
           alumnoCompleto['grado'] =
               alumnoCompleto['grado']?.toString() ?? 'Sin grado';
           alumnoCompleto['seccion'] =
-              alumnoCompleto['seccion']?.toString() ?? 'Sin sección';
+              alumnoCompleto['seccion']?.toString().toLowerCase() ??
+              'sin sección';
 
           alumnosConRegistros.add(alumnoCompleto);
         }
       }
 
-      Map<String, Map<String, List<Map<String, dynamic>>>> datosTemp = {};
+      // Organizar alumnos en: nivel -> sección -> grado -> lista alumnos
+      Map<String, Map<String, Map<String, List<Map<String, dynamic>>>>>
+      datosPorNivel = {};
 
       for (var alumno in alumnosConRegistros) {
+        final nivel = alumno['nivel'] ?? 'sin nivel';
+        final seccion = alumno['seccion'] ?? 'sin seccion';
         final grado = alumno['grado'] ?? 'sin grado';
-        final seccion = alumno['seccion'] ?? 'sin sección';
 
-        datosTemp.putIfAbsent(grado, () => {});
-        datosTemp[grado]!.putIfAbsent(seccion, () => []);
-        datosTemp[grado]![seccion]!.add(alumno);
+        datosPorNivel.putIfAbsent(nivel, () => {});
+        datosPorNivel[nivel]!.putIfAbsent(seccion, () => {});
+        datosPorNivel[nivel]![seccion]!.putIfAbsent(grado, () => []);
+        datosPorNivel[nivel]![seccion]![grado]!.add(alumno);
       }
 
-      for (var grado in datosTemp.keys) {
-        for (var seccion in datosTemp[grado]!.keys) {
-          datosTemp[grado]![seccion]!.sort(
-            (a, b) => (a['numero_lista'] as int? ?? 9999).compareTo(
-              b['numero_lista'] as int? ?? 9999,
-            ),
-          );
-        }
-      }
+      // Ordenar alumnos por número de lista dentro de cada grado
+      datosPorNivel.forEach((nivel, secciones) {
+        secciones.forEach((seccion, grados) {
+          grados.forEach((grado, alumnos) {
+            alumnos.sort(
+              (a, b) => (a['numero_lista'] as int? ?? 9999).compareTo(
+                b['numero_lista'] as int? ?? 9999,
+              ),
+            );
+          });
+        });
+      });
 
       setState(() {
-        datos = datosTemp;
+        datosPorNivelGuardados = datosPorNivel;
         estaCargando = false;
       });
     } catch (e) {
       setState(() {
-        datos = {};
+        datosPorNivelGuardados = {};
         estaCargando = false;
       });
       print('Error cargando datos: $e');
@@ -116,44 +126,23 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color cremitaGris = Color(0xFFC7B7A3);
-    final grisClarito = Colors.grey.shade200;
-    final grisMedio = Colors.grey.shade300;
+    const Color cremita = Color.fromARGB(248, 252, 230, 230);
+    final rojoOscuro = const Color.fromARGB(255, 39, 2, 2);
     final rojoClaro = Colors.red.shade100;
-    String hexColor = '#8e0b13';
-    int colorValue = int.parse(hexColor.substring(1), radix: 16);
-    Color miColor = Color(colorValue | 0xFF000000);
-    const cremita = const Color.fromARGB(248, 252, 230, 230);
-    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
-    //Paleta de colores habitual
+    final grisMedio = Colors.grey.shade300;
 
-    // Orden personalizado para grados
+    // Orden para grados
     final ordenEscolarBasica = ['7', '8', '9'];
     final ordenNivelMedio = ['1', '2', '3'];
 
-    List<String> gradosEscolarBasica = datos.keys
-        .where((g) => ordenEscolarBasica.any((o) => g.contains(o)))
-        .toList();
-    List<String> gradosNivelMedio = datos.keys
-        .where((g) => ordenNivelMedio.any((o) => g.contains(o)))
-        .toList();
-
-    gradosEscolarBasica.sort((a, b) {
-      int ia = ordenEscolarBasica.indexWhere((o) => a.contains(o));
-      int ib = ordenEscolarBasica.indexWhere((o) => b.contains(o));
-      return ia.compareTo(ib);
-    });
-    gradosNivelMedio.sort((a, b) {
-      int ia = ordenNivelMedio.indexWhere((o) => a.contains(o));
-      int ib = ordenNivelMedio.indexWhere((o) => b.contains(o));
-      return ia.compareTo(ib);
-    });
+    // Orden fijo para niveles
+    final nivelesOrdenados = ['escolar basica', 'nivel medio'];
 
     if (estaCargando) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    if (datos.isEmpty) {
+    if (datosPorNivelGuardados.isEmpty) {
       return const Scaffold(
         body: Center(child: Text('No hay alumnos con registros.')),
       );
@@ -163,17 +152,12 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
       backgroundColor: cremita,
       appBar: AppBar(
         backgroundColor: cremita,
-        iconTheme: const IconThemeData(color: rojoOscuro),
+        iconTheme: const IconThemeData(),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AdminUserHomeScreen(),
-              ),
-            );
+            Navigator.pushReplacementNamed(context, 'admin_home');
           },
         ),
         title: const Text(
@@ -210,319 +194,199 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
             ),
           ),
 
-          const SizedBox(height: 0),
+          const SizedBox(height: 8),
 
-          // Título fijo Escolar Básica con fondo gris clarito y bordes arriba y abajo
-          /*
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: grisClarito,
-              border: Border(
-                top: BorderSide(color: rojoOscuro.withOpacity(0.3), width: 1),
-                bottom: BorderSide(
-                  color: rojoOscuro.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-            ),
-            child: const Text(
-              'Escolar Básica',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: rojoOscuro,
-                letterSpacing: 1.1,
-              ),
-            ),
-          ),
+          // Recorremos los niveles en orden fijo
+          ...nivelesOrdenados.map((nivel) {
+            final secciones = datosPorNivelGuardados[nivel] ?? {};
 
-          const SizedBox(height: 10),
-          */
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Text(
-              'Escolar Básica',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: rojoOscuro,
-                //letterSpacing: 1.1,
-              ),
-            ),
-          ),
-
-          // Grados Escolar Básica con ExpansionTiles personalizados
-          ...gradosEscolarBasica.map((grado) {
-            final secciones = datos[grado]!;
-            return ExpansionTile(
-              tilePadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 6,
-              ),
-              iconColor: rojoOscuro,
-              collapsedIconColor: rojoOscuro.withOpacity(0.6),
-              title: Text(
-                '$grado° Grado',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: rojoOscuro,
-                ),
-              ),
-              children: secciones.entries.map((seccionEntry) {
-                final seccion = seccionEntry.key;
-                final alumnos = seccionEntry.value;
-
-                return ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 4,
-                  ),
-                  iconColor: rojoOscuro,
-                  collapsedIconColor: rojoOscuro.withOpacity(0.6),
-                  title: Text(
-                    'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: rojoOscuro,
-                    ),
-                  ),
-                  children: alumnos.map((alumno) {
-                    return ListTile(
-                      leading: SizedBox(
-                        width: 30,
-                        child: Center(
-                          child: Text(
-                            alumno['numero_lista']?.toString() ?? '',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: rojoOscuro,
-                            ),
-                          ),
-                        ),
-                      ),
-                      title: GestureDetector(
-                        onTap: alumno['cantidadRegistros'] > 0
-                            ? () => mostrarRegistros(alumno)
-                            : null,
-                        child: Text(
-                          '${alumno['nombre']} ${alumno['apellido']}',
-                          style: TextStyle(
-                            decoration: alumno['cantidadRegistros'] > 0
-                                ? TextDecoration.underline
-                                : TextDecoration.none,
-                            color: alumno['cantidadRegistros'] > 0
-                                ? Colors.red.shade700
-                                : rojoOscuro,
-                          ),
-                        ),
-                      ),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: alumno['cantidadRegistros'] > 0
-                              ? rojoClaro
-                              : grisMedio,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${alumno['cantidadRegistros']}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: alumno['cantidadRegistros'] > 0
-                                ? Colors.red.shade900
-                                : Colors.grey.shade600,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                );
-              }).toList(),
-            );
-          }),
-
-          const SizedBox(height: 12),
-
-          // Título fijo Nivel Medio
-          /*
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: grisClarito,
-              border: Border(
-                top: BorderSide(color: rojoOscuro.withOpacity(0.3), width: 1),
-                bottom: BorderSide(
-                  color: rojoOscuro.withOpacity(0.3),
-                  width: 1,
-                ),
-             ),
-            ),
-            child: 
-            const Text(
-              'Nivel Medio',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: rojoOscuro,
-                //letterSpacing: 1.1,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 0),
-          */
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Text(
-              'Nivel Medio',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: rojoOscuro,
-                //letterSpacing: 1.1,
-              ),
-            ),
-          ),
-
-          // Grados Nivel Medio
-          ...gradosNivelMedio.map((grado) {
-            final secciones = datos[grado]!;
-            return ExpansionTile(
-              tilePadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 2,
-              ),
-              iconColor: rojoOscuro,
-              collapsedIconColor: rojoOscuro.withOpacity(0.6),
-              title: Text(
-                '$grado° Curso',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: rojoOscuro,
-                ),
-              ),
-
-              children: /*[
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Título fijo nivel
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 4,
+                    vertical: 14,
                   ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 60,
-                        child: Text(
-                          'N° Lista',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: rojoOscuro,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          'Nombre y Apellido',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: rojoOscuro,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                ...*/ secciones.entries.map((seccionEntry) {
-                final seccion = seccionEntry.key;
-                final alumnos = seccionEntry.value;
-
-                return ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 4,
-                  ),
-                  iconColor: rojoOscuro,
-                  collapsedIconColor: rojoOscuro.withOpacity(0.6),
-                  title: Text(
-                    'Sección: ${seccion[0].toUpperCase()}${seccion.substring(1)}',
+                  child: Text(
+                    nivel == 'escolar basica'
+                        ? 'Escolar Básica'
+                        : 'Nivel Medio',
                     style: TextStyle(
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                       color: rojoOscuro,
                     ),
                   ),
-                  children: alumnos.map((alumno) {
-                    return ListTile(
-                      leading: SizedBox(
-                        width: 30,
-                        child: Center(
-                          child: Text(
-                            alumno['numero_lista']?.toString() ?? '',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: rojoOscuro,
-                            ),
-                          ),
-                        ),
-                      ),
-                      title: GestureDetector(
-                        onTap: alumno['cantidadRegistros'] > 0
-                            ? () => mostrarRegistros(alumno)
-                            : null,
-                        child: Text(
-                          '${alumno['nombre']} ${alumno['apellido']}',
-                          style: TextStyle(
-                            decoration: alumno['cantidadRegistros'] > 0
-                                ? TextDecoration.underline
-                                : TextDecoration.none,
-                            color: alumno['cantidadRegistros'] > 0
-                                ? Colors.red.shade700
-                                : rojoOscuro,
-                          ),
-                        ),
-                      ),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: alumno['cantidadRegistros'] > 0
-                              ? rojoClaro
-                              : grisMedio,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${alumno['cantidadRegistros']}',
+                ),
+
+                // Para cada sección, texto fijo + grados desplegables
+                ...secciones.entries.map((seccionEntry) {
+                  final seccion = seccionEntry.key;
+                  final gradosMap = seccionEntry.value;
+
+                  // Ordenamos grados para la sección según nivel
+                  final gradosList = gradosMap.entries.toList();
+                  gradosList.sort((a, b) {
+                    List<String> ordenGrados = nivel == 'escolar basica'
+                        ? ordenEscolarBasica
+                        : ordenNivelMedio;
+
+                    String gradoA = a.key.replaceAll(RegExp(r'[^0-9]'), '');
+                    String gradoB = b.key.replaceAll(RegExp(r'[^0-9]'), '');
+
+                    int ia = ordenGrados.indexOf(gradoA);
+                    int ib = ordenGrados.indexOf(gradoB);
+                    if (ia == -1) ia = 9999;
+                    if (ib == -1) ib = 9999;
+                    return ia.compareTo(ib);
+                  });
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Texto fijo sección
+                        Text(
+                          nivel == 'escolar basica'
+                              ? 'Sección ${seccion[0].toUpperCase()}${seccion.substring(1)}'
+                              : '${seccion[0].toUpperCase()}${seccion.substring(1)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: alumno['cantidadRegistros'] > 0
-                                ? Colors.red.shade900
-                                : Colors.grey.shade600,
+                            fontSize: 18,
+                            color: rojoOscuro,
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                );
-              }).toList(),
+
+                        const SizedBox(height: 6),
+
+                        // Desplegables por grado
+                        ...gradosList.map((gradoEntry) {
+                          final grado = gradoEntry.key;
+                          final alumnos = gradoEntry.value;
+
+                          return ExpansionTile(
+                            key: PageStorageKey('$nivel-$seccion-$grado'),
+                            tilePadding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 2,
+                            ),
+                            iconColor: rojoOscuro,
+                            collapsedIconColor: rojoOscuro.withOpacity(0.6),
+                            title: Text(
+                              nivel == 'escolar basica'
+                                  ? '$grado° Grado'
+                                  : '$grado° Curso',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: rojoOscuro,
+                              ),
+                            ),
+                            children: [
+                              // Encabezado de lista
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 30,
+                                      child: Text(
+                                        'Nro',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: rojoOscuro,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Text(
+                                        'Nombre y Apellido',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: rojoOscuro,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Lista de alumnos
+                              ...alumnos.map((alumno) {
+                                return ListTile(
+                                  leading: SizedBox(
+                                    width: 30,
+                                    child: Center(
+                                      child: Text(
+                                        alumno['numero_lista']?.toString() ??
+                                            '',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: rojoOscuro,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  title: GestureDetector(
+                                    onTap: alumno['cantidadRegistros'] > 0
+                                        ? () => mostrarRegistros(alumno)
+                                        : null,
+                                    child: Text(
+                                      '${alumno['nombre']} ${alumno['apellido']}',
+                                      style: TextStyle(
+                                        decoration: TextDecoration.none,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  trailing: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: alumno['cantidadRegistros'] > 0
+                                          ? rojoClaro
+                                          : grisMedio,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '${alumno['cantidadRegistros']}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: alumno['cantidadRegistros'] > 0
+                                            ? Colors.red.shade900
+                                            : Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ],
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ],
             );
-          }),
-          const SizedBox(
-            height: 20,
-          ), // Espacio final para que no quede pegado abajo
+          }).toList(),
+
+          const SizedBox(height: 20),
         ],
       ),
     );
