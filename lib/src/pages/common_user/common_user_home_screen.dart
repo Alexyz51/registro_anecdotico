@@ -238,6 +238,23 @@ class _CommonUserHomeScreenState extends State<CommonUserHomeScreen> {
 
               // Ítems del menú
               ListTile(
+                tileColor: _itemSeleccionado == 'historial'
+                    ? const Color.fromARGB(248, 252, 230, 230)
+                    : null,
+                leading: const Icon(Icons.history, color: Colors.white),
+                title: const Text(
+                  'Historial',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  setState(() {
+                    _itemSeleccionado = 'historial'; // 👈 Actualiza el estado
+                  });
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, 'historial');
+                },
+              ),
+              ListTile(
                 tileColor: _itemSeleccionado == 'about_app1'
                     ? const Color.fromARGB(248, 252, 230, 230)
                     : null,
