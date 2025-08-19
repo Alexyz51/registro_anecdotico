@@ -665,7 +665,167 @@ class _EditListScreenState extends State<EditListScreen> {
   }
 }
 
-// Esta seccion forma parte de importar desde csv que debo cambiar a español
+// Widget encargado de importar alumnos desde un archivo CSV
+class CsvImportWidget extends StatefulWidget {
+  final VoidCallback
+  onImportCompleted; // callback que se ejecuta cuando termina la importación
+
+  const CsvImportWidget({required this.onImportCompleted, super.key});
+
+  @override
+  State<CsvImportWidget> createState() => _CsvImportWidgetState();
+}
+
+class _CsvImportWidgetState extends State<CsvImportWidget> {
+  bool _isLoading = false; // indica si se está cargando
+  String? _message; // mensaje de estado (error o éxito)
+  int _importedCount = 0; // cantidad de alumnos importados
+
+  /// Función principal para seleccionar el archivo y subirlo
+  Future<void> _pickAndUploadCsv() async {
+    setState(() {
+      _isLoading = true;
+      _message = null;
+      _importedCount = 0;
+    });
+
+    try {
+      // Seleccionar archivo CSV con FilePicker
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'], // solo permitir archivos .csv
+        withData: true, // obtener bytes del archivo
+      );
+
+      // Si el usuario cancela la selección
+      if (result == null) {
+        setState(() {
+          _isLoading = false;
+          _message = 'No se seleccionó ningún archivo.';
+        });
+        return;
+      }
+
+      // Obtener contenido del archivo
+      final bytes = result.files.single.bytes;
+      if (bytes == null) throw 'No se pudieron obtener los datos del archivo.';
+      final content = utf8.decode(bytes);
+
+      // Convertir el CSV en lista de filas
+      // ⚠️ Importante: delimitador ';' ya que tu CSV usa punto y coma
+      final fields = const CsvToListConverter(
+        fieldDelimiter: ';',
+      ).convert(content);
+
+      // Validar si el archivo está vacío
+      if (fields.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _message = 'El archivo está vacío.';
+        });
+        return;
+      }
+
+      int count = 0; // contador de alumnos importados
+
+      // Recorrer filas (empezando desde 1 para saltar la cabecera)
+      for (int i = 1; i < fields.length; i++) {
+        final row = fields[i];
+
+        // Ignorar filas completamente vacías
+        if (row.every((cell) => cell.toString().trim().isEmpty)) continue;
+
+        // Asegurarse de que tenga 8 columnas (nombre, apellido, seccion, nivel, grado, numero_lista, anio, correo_padre)
+        if (row.length < 8) continue;
+
+        // Leer columnas
+        final nombre = row[0].toString().trim();
+        final apellido = row[1].toString().trim();
+        final seccionRaw = row[2].toString();
+        final nivelRaw = row[3].toString();
+        final gradoRaw = row[4].toString();
+        final numeroListaRaw = row[5].toString();
+        final anioRaw = row[6].toString();
+        final correoPadre = row[7].toString().trim(); // nueva columna
+
+        // Normalizar valores de texto (sin mayúsculas, tildes, etc.)
+        final nivel = normalizar(nivelRaw);
+        final grado = normalizar(gradoRaw);
+        final seccion = normalizar(seccionRaw);
+
+        // Convertir a enteros
+        final numeroLista = int.tryParse(numeroListaRaw) ?? 0;
+        final anio = int.tryParse(anioRaw) ?? 0;
+
+        // Validar que los valores estén permitidos
+        if (!nivelesPermitidos.contains(nivel)) continue;
+        if (nivel == 'escolar basica' && !gradosEscolarBasica.contains(grado))
+          continue;
+        if (nivel == 'nivel medio' && !gradosNivelMedio.contains(grado))
+          continue;
+        if (nivel == 'escolar basica' &&
+            !seccionesEscolarBasica.contains(seccion))
+          continue;
+        if (nivel == 'nivel medio' && !seccionesNivelMedio.contains(seccion))
+          continue;
+
+        // Preparar datos del alumno para Firestore
+        final data = {
+          'nombre': nombre,
+          'apellido': apellido,
+          'grado': grado,
+          'seccion': seccion,
+          'anio': anio,
+          'numero_lista': numeroLista,
+          'nivel': nivel,
+          'correo_padre': correoPadre, // 👈 se guarda en Firestore
+        };
+
+        // Guardar en Firestore
+        await FirebaseFirestore.instance.collection('students').add(data);
+        count++;
+      }
+
+      // Actualizar estado al terminar
+      setState(() {
+        _isLoading = false;
+        _message = 'Importados $count alumnos.';
+        _importedCount = count;
+      });
+
+      // Notificar al widget padre que terminó la importación
+      widget.onImportCompleted();
+    } catch (e) {
+      // Manejo de errores
+      setState(() {
+        _isLoading = false;
+        _message = 'Error al importar CSV: $e';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (_isLoading)
+          const CircularProgressIndicator() // mostrar spinner de carga
+        else
+          ElevatedButton.icon(
+            icon: const Icon(Icons.upload_file),
+            label: const Text('Seleccionar archivo CSV'),
+            onPressed: _pickAndUploadCsv, // acción de importar
+          ),
+        if (_message != null) ...[
+          const SizedBox(height: 10),
+          Text(_message!), // mostrar mensaje de estado
+        ],
+      ],
+    );
+  }
+}
+
+/*// Esta seccion forma parte de importar desde csv que debo cambiar a español
 class CsvImportWidget extends StatefulWidget {
   final VoidCallback onImportCompleted;
 
@@ -793,4 +953,4 @@ class _CsvImportWidgetState extends State<CsvImportWidget> {
       ],
     );
   }
-}
+}*/
