@@ -203,12 +203,28 @@ class _HistorialScreenState extends State<HistorialScreen> {
                       horizontal: 16,
                       vertical: 4,
                     ),
-                    title: Text(
-                      isCelular
-                          ? '$gradoFormateado\n$seccionFormateada - $nombre $apellido'
-                          : '$gradoFormateado - $seccionFormateada - $nombre $apellido',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    title: isCelular
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$gradoFormateado - $seccionFormateada',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                '$nombre $apellido',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Text(
+                            '$gradoFormateado - $seccionFormateada - $nombre $apellido',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                     subtitle: Text(
                       'Fecha: ${fecha.day}/${fecha.month}/${fecha.year}',
                       style: const TextStyle(fontSize: 12),
