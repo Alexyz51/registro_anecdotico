@@ -11,7 +11,7 @@ import 'package:registro_anecdotico/src/pages/admin_user/edit_list_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/users_list_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/about_app_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/records_summary_screen.dart';
-import 'package:registro_anecdotico/src/pages/common_user/escolar_basica1.dart';
+//import 'package:registro_anecdotico/src/pages/common_user/escolar_basica1.dart';
 import 'package:registro_anecdotico/src/pages/common_user/nivel_medio1.dart';
 import 'package:registro_anecdotico/src/pages/common_user/abou_app_screen1.dart';
 
@@ -59,9 +59,9 @@ class MyApp extends StatelessWidget {
         "escolar_basica": (context) => const EscolarBasicaScreen(),
         "about_app": (context) => const AboutAppScreen(),
         "records_summary": (context) => const RecordsSummaryScreen(),
-        //commun usesr
+        //common usesr
         "nivel_medio1": (context) => const NivelMedio1Screen(),
-        "escolar_basica1": (context) => const EscolarBasica1Screen(),
+        //"escolar_basica1": (context) => const EscolarBasica1Screen(),
         "about_app1": (context) => const AboutApp1Screen(),
       },
     );

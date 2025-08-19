@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
+import 'package:registro_anecdotico/src/pages/common_user/common_user_home_screen.dart';
 import 'package:logger/logger.dart';
 import 'package:registro_anecdotico/src/pages/widgets/breadcrumb_navigation.dart';
 
@@ -103,6 +104,7 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
       final data = docUser.data()!;
       setState(() {
         usuarioActual['rolReal'] = data['rolReal'] ?? '';
+        usuarioActual['rol'] = data['rol'] ?? '';
         usuarioActual['nombre'] = data['nombre'] ?? '';
         usuarioActual['apellido'] = data['apellido'] ?? '';
       });
@@ -588,11 +590,19 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
-              (route) => false,
-            );
+            if (usuarioActual['rol'] == 'administrador') {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
+                (route) => false,
+              );
+            } else {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => CommonUserHomeScreen()),
+                (route) => false,
+              );
+            }
           },
         ),
         centerTitle: true,
@@ -620,10 +630,26 @@ class _NivelMedioScreenState extends State<NivelMedioScreen> {
                 BreadcrumbItem(
                   recorrido: 'Secciones',
                   onTap: () {
-                    Navigator.pushReplacementNamed(context, 'admin_home');
+                    if (usuarioActual['rol'] == 'administrador') {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AdminUserHomeScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    } else {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CommonUserHomeScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    }
                   },
                 ),
-                BreadcrumbItem(recorrido: 'Lista de Nivel Medio'),
+                BreadcrumbItem(recorrido: 'Lista de Escolar Básica'),
               ],
             ),
           ),

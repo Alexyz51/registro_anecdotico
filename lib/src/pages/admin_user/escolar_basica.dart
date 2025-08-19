@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
-import 'package:logger/logger.dart';
+import 'package:registro_anecdotico/src/pages/common_user/common_user_home_screen.dart';
 import 'package:registro_anecdotico/src/pages/widgets/breadcrumb_navigation.dart';
+import 'package:logger/logger.dart';
 
+/// Pantalla principal de Escolar Básica
 class EscolarBasicaScreen extends StatefulWidget {
   const EscolarBasicaScreen({super.key});
 
@@ -14,13 +16,14 @@ class EscolarBasicaScreen extends StatefulWidget {
 
 class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
   final Logger logger = Logger();
+
   bool estaCargando = true;
+
+  /// Estructura: Grado -> Sección -> Lista de alumnos
   Map<String, Map<String, List<Map<String, dynamic>>>> datos = {};
-  Map<String, String> usuarioActual = {
-    'cargo': '',
-    'nombre': '',
-    'apellido': '',
-  };
+
+  /// Datos del usuario actual
+  Map<String, String> usuarioActual = {'rol': '', 'nombre': '', 'apellido': ''};
 
   @override
   void initState() {
@@ -30,9 +33,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
   }
 
   Future<void> cargarDatos() async {
-    setState(() {
-      estaCargando = true;
-    });
+    setState(() => estaCargando = true);
 
     final snapshot = await FirebaseFirestore.instance
         .collection('students')
@@ -87,7 +88,6 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
     User? usuario = FirebaseAuth.instance.currentUser;
 
     if (usuario == null) {
-      // No hay usuario autenticado
       logger.w('No hay usuario autenticado');
       return;
     }
@@ -103,6 +103,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
       final data = docUser.data()!;
       setState(() {
         usuarioActual['rolReal'] = data['rolReal'] ?? '';
+        usuarioActual['rol'] = data['rol'] ?? '';
         usuarioActual['nombre'] = data['nombre'] ?? '';
         usuarioActual['apellido'] = data['apellido'] ?? '';
       });
@@ -129,9 +130,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
       'nivel': alumno['nivel'],
       'registrado_por':
           '${usuarioActual['nombre']} ${usuarioActual['apellido']} ${usuarioActual['rolReal']}',
-      // Solo rol real (sin nombre ni apellido) con P mayúscula:
       'registradoPor': usuarioActual['rolReal'],
-      // UID con guion bajo y todo en minúscula:
       'userId': uidUsuario,
     };
 
@@ -160,7 +159,6 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
     };
     bool otrosSeleccionado = false;
 
-    // Contexto para SnackBar fuera del diálogo
     final scaffoldContext = context;
 
     await showDialog(
@@ -183,23 +181,17 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                   child: Form(
                     key: _formKey,
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Selección de color
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Text(
-                              'Clasificación',
-                              style: TextStyle(fontSize: 14),
-                            ),
+                            const Text('Clasificación'),
                             const SizedBox(width: 8),
                             GestureDetector(
-                              onTap: () {
-                                setStateDialog(() {
-                                  colorSeleccionado = 'verde';
-                                });
-                              },
+                              onTap: () => setStateDialog(
+                                () => colorSeleccionado = 'verde',
+                              ),
                               child: CircleAvatar(
                                 backgroundColor: Colors.green,
                                 radius: 9,
@@ -214,11 +206,9 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                             ),
                             const SizedBox(width: 6),
                             GestureDetector(
-                              onTap: () {
-                                setStateDialog(() {
-                                  colorSeleccionado = 'amarillo';
-                                });
-                              },
+                              onTap: () => setStateDialog(
+                                () => colorSeleccionado = 'amarillo',
+                              ),
                               child: CircleAvatar(
                                 backgroundColor: Colors.amber,
                                 radius: 9,
@@ -233,11 +223,9 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                             ),
                             const SizedBox(width: 6),
                             GestureDetector(
-                              onTap: () {
-                                setStateDialog(() {
-                                  colorSeleccionado = 'rojo';
-                                });
-                              },
+                              onTap: () => setStateDialog(
+                                () => colorSeleccionado = 'rojo',
+                              ),
                               child: CircleAvatar(
                                 backgroundColor: Colors.red,
                                 radius: 9,
@@ -253,39 +241,29 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-
                         const Text(
                           'Descripción del Suceso:',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-
                         ...conductasFrecuentes.map((conducta) {
                           return CheckboxListTile(
                             title: Text(conducta),
                             value: conductasSeleccionadas[conducta],
                             controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (bool? value) {
-                              setStateDialog(() {
-                                conductasSeleccionadas[conducta] =
-                                    value ?? false;
-                              });
-                            },
+                            onChanged: (bool? value) => setStateDialog(() {
+                              conductasSeleccionadas[conducta] = value ?? false;
+                            }),
                             contentPadding: EdgeInsets.zero,
                           );
                         }).toList(),
-
                         CheckboxListTile(
                           title: const Text('Otros'),
                           value: otrosSeleccionado,
                           controlAffinity: ListTileControlAffinity.leading,
-                          onChanged: (bool? value) {
-                            setStateDialog(() {
-                              otrosSeleccionado = value ?? false;
-                              if (!otrosSeleccionado) {
-                                otrosController.clear();
-                              }
-                            });
-                          },
+                          onChanged: (bool? value) => setStateDialog(() {
+                            otrosSeleccionado = value ?? false;
+                            if (!otrosSeleccionado) otrosController.clear();
+                          }),
                           contentPadding: EdgeInsets.zero,
                         ),
                         if (otrosSeleccionado)
@@ -305,7 +283,6 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                             },
                           ),
                         const SizedBox(height: 16),
-
                         TextFormField(
                           controller: comentarioController,
                           maxLines: 3,
@@ -332,11 +309,7 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (!_formKey.currentState!.validate()) {
-                      print('Validación falló');
-                      return;
-                    }
-
+                    if (!_formKey.currentState!.validate()) return;
                     if (colorSeleccionado == null) {
                       ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                         const SnackBar(
@@ -383,7 +356,6 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                         alumno: alumno,
                       );
                     } catch (e) {
-                      print('Error guardando conducta: $e');
                       ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                         SnackBar(
                           content: Text('Error al guardar registro: $e'),
@@ -415,12 +387,12 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
   @override
   Widget build(BuildContext context) {
     const Color cremita = Color.fromARGB(248, 252, 230, 230);
-    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
 
     if (estaCargando) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // Separar alumnos por sección A y B
     Map<String, Map<String, List>> seccionA = {};
     Map<String, Map<String, List>> seccionB = {};
 
@@ -436,145 +408,6 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
       });
     });
 
-    Widget construirSeccion(
-      String nombreSeccion,
-      Map<String, Map<String, List>> data,
-    ) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              'Sección $nombreSeccion',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-          ...data.entries.map((gradoEntry) {
-            final grado = gradoEntry.key;
-            final secciones = gradoEntry.value;
-
-            final List alumnosUnificados = secciones.values
-                .expand((lista) => lista)
-                .toList();
-
-            return ExpansionTile(
-              title: Text('$grado° Curso'),
-              children: [
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minWidth: MediaQuery.of(context).size.width,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: const [
-                          SizedBox(
-                            width: 30,
-                            child: Center(
-                              child: Text(
-                                'Nro',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          SizedBox(
-                            width: 250,
-                            child: Text(
-                              'Nombre y Apellido',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                ...alumnosUnificados.map((alumno) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Colors.grey.shade400,
-                          width: 0.5,
-                        ),
-                      ),
-                    ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: MediaQuery.of(context).size.width,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 30,
-                                child: Center(
-                                  child: Text(
-                                    alumno['numero_lista'].toString(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: 1,
-                                height: 24,
-                                color: Colors.grey.shade400,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 250,
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      mostrarDialogoClasificacion(alumno),
-                                  child: Text(
-                                    '${alumno['nombre']} ${alumno['apellido']}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      decoration: TextDecoration.none,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ],
-            );
-          }).toList(),
-        ],
-      );
-    } // <-- AQUÍ termina construirSeccion
-
-    // Ahora sí retornamos el Scaffold principal de la pantalla
     return Scaffold(
       backgroundColor: cremita,
       appBar: AppBar(
@@ -582,11 +415,19 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
-              (route) => false,
-            );
+            if (usuarioActual['rol'] == 'administrador') {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
+                (route) => false,
+              );
+            } else {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => CommonUserHomeScreen()),
+                (route) => false,
+              );
+            }
           },
         ),
         centerTitle: true,
@@ -600,12 +441,8 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
         ),
         automaticallyImplyLeading: true,
         elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4.0),
-          child: Container(color: rojoOscuro, height: 5.0),
-        ),
       ),
-      body: Column(
+      body: ListView(
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
@@ -614,20 +451,71 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
                 BreadcrumbItem(
                   recorrido: 'Secciones',
                   onTap: () {
-                    Navigator.pushReplacementNamed(context, 'admin_home');
+                    if (usuarioActual['rol'] == 'administrador') {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AdminUserHomeScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    } else {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CommonUserHomeScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    }
                   },
                 ),
                 BreadcrumbItem(recorrido: 'Lista de Escolar Básica'),
               ],
             ),
           ),
-          Expanded(
-            child: ListView(
-              children: [
-                construirSeccion('A', seccionA),
-                const SizedBox(height: 20),
-                construirSeccion('B', seccionB),
-              ],
+          ...seccionA.entries.map(
+            (e) => ExpansionTile(
+              title: Text('Sección ${e.key}'),
+              children: e.value.entries
+                  .map(
+                    (gradoEntry) => Column(
+                      children: gradoEntry.value
+                          .map(
+                            (alumno) => ListTile(
+                              title: Text(
+                                '${alumno['nombre']} ${alumno['apellido']}',
+                              ),
+                              subtitle: Text('Nro: ${alumno['numero_lista']}'),
+                              onTap: () => mostrarDialogoClasificacion(alumno),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          ...seccionB.entries.map(
+            (e) => ExpansionTile(
+              title: Text('Sección ${e.key}'),
+              children: e.value.entries
+                  .map(
+                    (gradoEntry) => Column(
+                      children: gradoEntry.value
+                          .map(
+                            (alumno) => ListTile(
+                              title: Text(
+                                '${alumno['nombre']} ${alumno['apellido']}',
+                              ),
+                              subtitle: Text('Nro: ${alumno['numero_lista']}'),
+                              onTap: () => mostrarDialogoClasificacion(alumno),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ],

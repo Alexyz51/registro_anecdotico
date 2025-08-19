@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
+import 'common_user_home_screen.dart';
 import '../widgets/breadcrumb_navigation.dart';
 
 class AboutApp1Screen extends StatefulWidget {
@@ -77,7 +77,7 @@ class _AboutApp1ScreenState extends State<AboutApp1Screen> {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
+              MaterialPageRoute(builder: (context) => CommonUserHomeScreen()),
               (route) => false,
             );
           },

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:registro_anecdotico/src/pages/common_user/common_user_home_screen.dart';
@@ -572,7 +572,7 @@ class _EscolarBasica1ScreenState extends State<EscolarBasica1Screen> {
           }).toList(),
         ],
       );
-    } // <-- AQUÍ termina construirSeccion
+    } // AQUÍ termina construirSeccion
 
     // Ahora sí retornamos el Scaffold principal de la pantalla
     return Scaffold(
@@ -635,3 +635,4 @@ class _EscolarBasica1ScreenState extends State<EscolarBasica1Screen> {
     );
   }
 }
+*/

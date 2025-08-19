@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
+import 'common_user_home_screen.dart';
 import 'package:logger/logger.dart';
 import 'package:registro_anecdotico/src/pages/widgets/breadcrumb_navigation.dart';
 
@@ -590,7 +590,7 @@ class _NivelMedio1ScreenState extends State<NivelMedio1Screen> {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
+              MaterialPageRoute(builder: (context) => CommonUserHomeScreen()),
               (route) => false,
             );
           },
@@ -620,7 +620,7 @@ class _NivelMedio1ScreenState extends State<NivelMedio1Screen> {
                 BreadcrumbItem(
                   recorrido: 'Secciones',
                   onTap: () {
-                    Navigator.pushReplacementNamed(context, 'admin_home');
+                    Navigator.pushReplacementNamed(context, 'user_home');
                   },
                 ),
                 BreadcrumbItem(recorrido: 'Lista de Nivel Medio'),
