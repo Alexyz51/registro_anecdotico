@@ -13,7 +13,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 4), () {
-      if (!mounted) return; // ✅ Verifica si el widget sigue montado
+      if (!mounted) return; // Verifica si el widget sigue montado
 
       Navigator.pushAndRemoveUntil(
         context,
