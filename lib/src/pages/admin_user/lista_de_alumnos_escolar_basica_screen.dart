@@ -97,6 +97,7 @@ class _ListaAlumnosEscolarBasicaScreenState
     });
   }
 
+  // Función para registrar conducta en Firestore
   Future<void> registrarConducta({
     required String color,
     required String descripcion,
@@ -121,9 +122,10 @@ class _ListaAlumnosEscolarBasicaScreenState
       'userId': uidUsuario,
     };
 
-    await FirebaseFirestore.instance.collection('records').add(registro);
+    await FirebaseFirestore.instance.collection('conductas').add(registro);
   }
 
+  // Función para mostrar el diálogo de clasificación
   Future<void> mostrarDialogoClasificacion(Map<String, dynamic> alumno) async {
     String? colorSeleccionado;
     final _formKey = GlobalKey<FormState>();
@@ -144,132 +146,139 @@ class _ListaAlumnosEscolarBasicaScreenState
     };
     bool otrosSeleccionado = false;
     final TextEditingController otrosController = TextEditingController();
-
     final scaffoldContext = context;
 
     await showDialog(
       context: context,
       builder: (contextDialog) {
+        final anchoPantalla = MediaQuery.of(context).size.width;
+        final anchoDialogo = anchoPantalla < 600 ? anchoPantalla * 0.95 : 500.0;
+
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
               title: const Text('Registrar conducta'),
               content: SizedBox(
-                width: double.maxFinite,
+                width: anchoDialogo,
                 child: SingleChildScrollView(
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Clasificación:'),
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                setStateDialog(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Clasificación
+                          const Text(
+                            'Clasificación',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              _buildColorCircle(
+                                colorName: 'verde',
+                                colorSeleccionado: colorSeleccionado,
+                                onTap: () => setStateDialog(
                                   () => colorSeleccionado = 'verde',
-                                );
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: Colors.green,
-                                child: colorSeleccionado == 'verde'
-                                    ? const Icon(
-                                        Icons.check,
-                                        color: Colors.white,
-                                      )
-                                    : null,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () {
-                                setStateDialog(
+                              const SizedBox(width: 12),
+                              _buildColorCircle(
+                                colorName: 'amarillo',
+                                colorSeleccionado: colorSeleccionado,
+                                onTap: () => setStateDialog(
                                   () => colorSeleccionado = 'amarillo',
-                                );
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: Colors.amber,
-                                child: colorSeleccionado == 'amarillo'
-                                    ? const Icon(
-                                        Icons.check,
-                                        color: Colors.white,
-                                      )
-                                    : null,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () {
-                                setStateDialog(
+                              const SizedBox(width: 12),
+                              _buildColorCircle(
+                                colorName: 'rojo',
+                                colorSeleccionado: colorSeleccionado,
+                                onTap: () => setStateDialog(
                                   () => colorSeleccionado = 'rojo',
-                                );
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: Colors.red,
-                                child: colorSeleccionado == 'rojo'
-                                    ? const Icon(
-                                        Icons.check,
-                                        color: Colors.white,
-                                      )
-                                    : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Descripción de suceso
+                          const Text(
+                            'Descripción del suceso:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          ...conductasFrecuentes.map(
+                            (c) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: CheckboxListTile(
+                                title: Text(c),
+                                value: conductasSeleccionadas[c],
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                                contentPadding: EdgeInsets.zero,
+                                onChanged: (v) => setStateDialog(
+                                  () => conductasSeleccionadas[c] = v ?? false,
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        const Text('Descripción del suceso:'),
-                        ...conductasFrecuentes.map((c) {
-                          return CheckboxListTile(
-                            title: Text(c),
-                            value: conductasSeleccionadas[c],
+                          ),
+                          CheckboxListTile(
+                            title: const Text('Otros'),
+                            value: otrosSeleccionado,
                             onChanged: (v) {
                               setStateDialog(() {
-                                conductasSeleccionadas[c] = v ?? false;
+                                otrosSeleccionado = v ?? false;
+                                if (!otrosSeleccionado) otrosController.clear();
                               });
                             },
-                          );
-                        }).toList(),
-                        CheckboxListTile(
-                          title: const Text('Otros'),
-                          value: otrosSeleccionado,
-                          onChanged: (v) {
-                            setStateDialog(() {
-                              otrosSeleccionado = v ?? false;
-                              if (!otrosSeleccionado) otrosController.clear();
-                            });
-                          },
-                        ),
-                        if (otrosSeleccionado)
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          if (otrosSeleccionado)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: TextFormField(
+                                controller: otrosController,
+                                maxLines: 2,
+                                decoration: const InputDecoration(
+                                  labelText: 'Describa la conducta',
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (otrosSeleccionado &&
+                                      (value == null || value.trim().isEmpty)) {
+                                    return 'Debe describir la conducta';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+
+                          // Comentario / reflexión
                           TextFormField(
-                            controller: otrosController,
-                            maxLines: 2,
+                            controller: comentarioController,
+                            maxLines: 3,
                             decoration: const InputDecoration(
-                              labelText: 'Describa la conducta',
+                              labelText: 'Sugerencias / Reflexión',
+                              border: OutlineInputBorder(),
                             ),
                             validator: (value) {
-                              if (otrosSeleccionado &&
-                                  (value == null || value.trim().isEmpty)) {
-                                return 'Debe describir la conducta';
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Ingrese sugerencia o reflexión';
                               }
                               return null;
                             },
                           ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: comentarioController,
-                          maxLines: 3,
-                          decoration: const InputDecoration(
-                            labelText: 'Sugerencias / Reflexión',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Ingrese sugerencia o reflexión';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -337,6 +346,38 @@ class _ListaAlumnosEscolarBasicaScreenState
           },
         );
       },
+    );
+  }
+
+  Widget _buildColorCircle({
+    required String colorName,
+    required String? colorSeleccionado,
+    required VoidCallback onTap,
+  }) {
+    Color color;
+    switch (colorName) {
+      case 'verde':
+        color = Colors.green;
+        break;
+      case 'amarillo':
+        color = Colors.amber;
+        break;
+      case 'rojo':
+        color = Colors.red;
+        break;
+      default:
+        color = Colors.grey;
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: CircleAvatar(
+        backgroundColor: color,
+        radius: 12,
+        child: colorSeleccionado == colorName
+            ? const Icon(Icons.check, color: Colors.white, size: 16)
+            : null,
+      ),
     );
   }
 
@@ -425,8 +466,7 @@ class _ListaAlumnosEscolarBasicaScreenState
                       MaterialPageRoute(
                         builder: (context) => EscolarBasicaScreen(),
                       ),
-                      (route) =>
-                          false, // se eliminan todas las pantallas anteriores
+                      (route) => false,
                     );
                   },
                 ),
