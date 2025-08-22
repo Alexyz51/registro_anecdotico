@@ -85,6 +85,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => ListaAlumnosScreen(
+              alumno: estudiante, // el Map completo del alumno
               grado: estudiante['grado'].toString(),
               seccion: estudiante['seccion'],
               nivel: estudiante['nivel'] ?? 'Nivel desconocido',
