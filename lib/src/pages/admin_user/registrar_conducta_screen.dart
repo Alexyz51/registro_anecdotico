@@ -13,11 +13,10 @@ class RegistrarConductaScreen extends StatefulWidget {
 }
 
 class _RegistrarConductaScreenState extends State<RegistrarConductaScreen> {
-  String? colorSeleccionado;
   final _formKey = GlobalKey<FormState>();
+  String? colorSeleccionado;
   final TextEditingController comentarioController = TextEditingController();
   final TextEditingController otrosController = TextEditingController();
-  bool otrosSeleccionado = false;
 
   final List<String> conductasFrecuentes = [
     'No entrega tarea',
@@ -30,17 +29,47 @@ class _RegistrarConductaScreenState extends State<RegistrarConductaScreen> {
     'Ausente con reposo médico',
   ];
 
-  Map<String, bool> conductasSeleccionadas = {};
+  late Map<String, bool> conductasSeleccionadas;
+  bool otrosSeleccionado = false;
+  Map<String, String> usuarioActual = {
+    'nombre': '',
+    'apellido': '',
+    'rolReal': '',
+  };
 
   @override
   void initState() {
     super.initState();
     conductasSeleccionadas = {for (var c in conductasFrecuentes) c: false};
+    cargarUsuarioActual();
+  }
+
+  Future<void> cargarUsuarioActual() async {
+    User? usuario = FirebaseAuth.instance.currentUser;
+    if (usuario == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(usuario.uid)
+        .get();
+    if (doc.exists) {
+      final data = doc.data()!;
+      setState(() {
+        usuarioActual['nombre'] = data['nombre'] ?? '';
+        usuarioActual['apellido'] = data['apellido'] ?? '';
+        usuarioActual['rolReal'] = data['rolReal'] ?? '';
+      });
+    }
   }
 
   Future<void> registrarConducta() async {
-    final usuario = FirebaseAuth.instance.currentUser;
-    final uidUsuario = usuario?.uid ?? 'desconocido';
+    if (!_formKey.currentState!.validate()) return;
+    if (colorSeleccionado == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Seleccione un color')));
+      return;
+    }
 
     List<String> listaConductas = conductasSeleccionadas.entries
         .where((e) => e.value)
@@ -60,27 +89,38 @@ class _RegistrarConductaScreenState extends State<RegistrarConductaScreen> {
       return;
     }
 
+    final descripcion = listaConductas.map((c) => '• $c').join('\n');
+    final comentario = comentarioController.text.trim();
+    final usuarioActualFirebase = FirebaseAuth.instance.currentUser;
+    final String uidUsuario = usuarioActualFirebase?.uid ?? 'desconocido';
+
     final registro = {
       'studentId': widget.alumno['docId'],
       'fecha': DateTime.now(),
       'color': colorSeleccionado,
-      'descripcion': listaConductas.map((c) => '• $c').join('\n'),
-      'comentario': comentarioController.text.trim(),
+      'descripcion': descripcion,
+      'comentario': comentario,
       'grado': widget.alumno['grado'],
       'seccion': widget.alumno['seccion'],
-      'nivel': widget.alumno['nivel'] ?? 'Escolar Básica',
+      'nivel': widget.alumno['nivel'] ?? 'escolar basica',
+      'registrado_por':
+          '${usuarioActual['nombre']} ${usuarioActual['apellido']} ${usuarioActual['rolReal']}',
+      'registradoPor': usuarioActual['rolReal'],
       'userId': uidUsuario,
     };
 
     await FirebaseFirestore.instance.collection('conductas').add(registro);
+
+    // Mensaje y regresar a la pantalla anterior
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Registro guardado de ${widget.alumno['nombre']} ${widget.alumno['apellido']}',
+          'Registro de ${widget.alumno['nombre']} ${widget.alumno['apellido']} ha sido guardado con éxito',
         ),
       ),
     );
-    Navigator.pop(context);
+
+    Navigator.pop(context); // Vuelve a la pantalla anterior
   }
 
   Widget _buildColorCircle(String colorName) {
@@ -103,9 +143,9 @@ class _RegistrarConductaScreenState extends State<RegistrarConductaScreen> {
       onTap: () => setState(() => colorSeleccionado = colorName),
       child: CircleAvatar(
         backgroundColor: color,
-        radius: 15,
+        radius: 16,
         child: colorSeleccionado == colorName
-            ? const Icon(Icons.check, color: Colors.white, size: 16)
+            ? const Icon(Icons.check, color: Colors.white, size: 18)
             : null,
       ),
     );
@@ -113,9 +153,17 @@ class _RegistrarConductaScreenState extends State<RegistrarConductaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color cremita = Color.fromARGB(248, 252, 230, 230);
     return Scaffold(
+      backgroundColor: cremita,
       appBar: AppBar(
-        title: Text('Registrar conducta - ${widget.alumno['nombre']}'),
+        backgroundColor: cremita,
+        title: Text('Registrar Conducta', style: const TextStyle(fontSize: 16)),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -124,6 +172,13 @@ class _RegistrarConductaScreenState extends State<RegistrarConductaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                '${widget.alumno['nombre']} ${widget.alumno['apellido']} (${widget.alumno['grado']}° Grado - Seccion ${widget.alumno['seccion'].toUpperCase()})',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
               const Text(
                 'Clasificación',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -140,7 +195,7 @@ class _RegistrarConductaScreenState extends State<RegistrarConductaScreen> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Descripción del suceso',
+                'Descripción del suceso:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -151,6 +206,7 @@ class _RegistrarConductaScreenState extends State<RegistrarConductaScreen> {
                   onChanged: (v) =>
                       setState(() => conductasSeleccionadas[c] = v ?? false),
                   controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
                 ),
               ),
               CheckboxListTile(
@@ -163,29 +219,54 @@ class _RegistrarConductaScreenState extends State<RegistrarConductaScreen> {
                   });
                 },
                 controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
               ),
               if (otrosSeleccionado)
-                TextFormField(
-                  controller: otrosController,
-                  decoration: const InputDecoration(
-                    labelText: 'Describa la conducta',
-                    border: OutlineInputBorder(),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: TextFormField(
+                    controller: otrosController,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Describa la conducta',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (otrosSeleccionado &&
+                          (value == null || value.trim().isEmpty)) {
+                        return 'Debe describir la conducta';
+                      }
+                      return null;
+                    },
                   ),
-                  maxLines: 2,
                 ),
-              const SizedBox(height: 16),
               TextFormField(
                 controller: comentarioController,
+                maxLines: 3,
                 decoration: const InputDecoration(
                   labelText: 'Sugerencias / Reflexión',
                   border: OutlineInputBorder(),
                 ),
-                maxLines: 3,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Ingrese sugerencia o reflexión';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: registrarConducta,
-                child: const Text('Guardar'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: registrarConducta,
+                    child: const Text('Guardar'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                ],
               ),
             ],
           ),

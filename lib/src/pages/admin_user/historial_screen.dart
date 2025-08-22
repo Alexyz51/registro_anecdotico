@@ -65,14 +65,24 @@ class _HistorialScreenState extends State<HistorialScreen> {
   Future<void> cargarDatos() async {
     setState(() => estaCargando = true);
 
-    // Cargar registros
-    final snapshot = await FirebaseFirestore.instance
-        .collection('records')
-        .orderBy('fecha', descending: true)
-        .get();
+    final User? usuario = FirebaseAuth.instance.currentUser;
+    if (usuario == null) {
+      setState(() {
+        registros = [];
+        estaCargando = false;
+      });
+      return;
+    }
 
     // Cargar usuario actual
     usuarioActual = await obtenerUsuarioActual();
+
+    // Trae solo registros creados por este usuario
+    final snapshot = await FirebaseFirestore.instance
+        .collection('records')
+        .where('userId', isEqualTo: usuario.uid) //filtro clave
+        // .orderBy('fecha', descending: true) no se puede porque hay que indexar
+        .get();
 
     // Obtener información del alumno para cada registro
     final lista = await Future.wait(
@@ -96,7 +106,12 @@ class _HistorialScreenState extends State<HistorialScreen> {
         return data;
       }),
     );
-
+    // Ordena por fecha descendente en memoria
+    lista.sort((a, b) {
+      final fechaA = a['fecha']?.toDate() ?? DateTime(2000);
+      final fechaB = b['fecha']?.toDate() ?? DateTime(2000);
+      return fechaB.compareTo(fechaA); // más reciente primero
+    });
     setState(() {
       registros = lista;
       estaCargando = false;

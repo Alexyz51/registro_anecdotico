@@ -154,6 +154,7 @@ class _ListaAlumnosEscolarBasicaScreenState
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
+          // Encabezado de la lista
           Container(
             color: Colors.grey[300],
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -161,37 +162,37 @@ class _ListaAlumnosEscolarBasicaScreenState
               children: const [
                 Expanded(
                   flex: 1,
-                  child: Text(
-                    'N°',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: Text(
+                      'N°',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
+                // Línea vertical de separación
+                VerticalDivider(color: Colors.grey, thickness: 1),
                 Expanded(
-                  flex: 3,
+                  flex: 6,
                   child: Text(
-                    'Nombre',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Apellido',
+                    'Nombre y Apellido',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
           ),
+
+          // Lista de alumnos con separación vertical
           Expanded(
             child: ListView.builder(
               itemCount: alumnosFiltrados.length,
               itemBuilder: (context, index) {
                 final alumno = alumnosFiltrados[index];
                 final color = index % 2 == 0 ? Colors.grey[100] : Colors.white;
+
                 return GestureDetector(
                   onTap: () {
-                    // 👉 Navegar a la pantalla de registrar conducta para ese alumno
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -200,7 +201,15 @@ class _ListaAlumnosEscolarBasicaScreenState
                     );
                   },
                   child: Container(
-                    color: color,
+                    decoration: BoxDecoration(
+                      color: color,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.grey.shade400,
+                          width: 1,
+                        ),
+                      ),
+                    ),
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 8,
@@ -209,12 +218,21 @@ class _ListaAlumnosEscolarBasicaScreenState
                       children: [
                         Expanded(
                           flex: 1,
-                          child: Text(alumno['numero_lista'].toString()),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text(alumno['numero_lista'].toString()),
+                          ),
                         ),
-                        Expanded(flex: 3, child: Text(alumno['nombre'] ?? '')),
+                        // Línea vertical de separación
+                        Container(width: 1, height: 20, color: Colors.grey),
                         Expanded(
-                          flex: 3,
-                          child: Text(alumno['apellido'] ?? ''),
+                          flex: 6,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text(
+                              '${alumno['nombre'] ?? ''} ${alumno['apellido'] ?? ''}',
+                            ),
+                          ),
                         ),
                       ],
                     ),
