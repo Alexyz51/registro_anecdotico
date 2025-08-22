@@ -17,6 +17,7 @@ import 'package:registro_anecdotico/src/pages/admin_user/records_summary_screen.
 //import 'package:registro_anecdotico/src/pages/admin_user/historial_screen.dart';
 //import 'package:registro_anecdotico/src/pages/common_user/abou_app_screen1.dart';
 //import 'package:registro_anecdotico/src/pages/admin_user/lista_de_alumnos_escolar_basica_screen.dart';
+//import 'package:registro_anecdotico/src/pages/admin_user/lista_alumnos_screen.dart';
 
 // Importaciones de Firebase
 import 'package:firebase_core/firebase_core.dart';
