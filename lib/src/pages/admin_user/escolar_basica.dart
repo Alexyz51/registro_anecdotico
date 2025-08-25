@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:registro_anecdotico/src/pages/widgets/breadcrumb_navigation.dart';
@@ -208,3 +208,4 @@ class _EscolarBasicaScreenState extends State<EscolarBasicaScreen> {
     );
   }
 }
+*/
