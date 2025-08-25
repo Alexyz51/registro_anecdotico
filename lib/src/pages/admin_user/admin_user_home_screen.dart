@@ -161,15 +161,28 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
   }
 
   Future<void> _buscarAlumno() async {
-    final nombreBusq = _nombreCtrl.text.trim().toLowerCase();
-    final apellidoBusq = _apellidoCtrl.text.trim().toLowerCase();
+    // Normaliza la función para quitar acentos
+    String normalizar(String texto) {
+      texto = texto.toLowerCase();
+      texto = texto
+          .replaceAll('á', 'a')
+          .replaceAll('é', 'e')
+          .replaceAll('í', 'i')
+          .replaceAll('ó', 'o')
+          .replaceAll('ú', 'u')
+          .replaceAll('ñ', 'n');
+      return texto.trim();
+    }
+
+    final nombreBusq = normalizar(_nombreCtrl.text);
+    final apellidoBusq = normalizar(_apellidoCtrl.text);
     final gradoBusq = _gradoSeleccionado;
-    final seccionBusq = _seccionSeleccionada?.toLowerCase();
+    final seccionBusq = normalizar(_seccionSeleccionada ?? '');
 
     if (nombreBusq.isEmpty ||
         apellidoBusq.isEmpty ||
         gradoBusq == null ||
-        seccionBusq == null) {
+        seccionBusq.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Complete todos los campos")),
       );
@@ -180,22 +193,15 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
       final snapshot = await FirebaseFirestore.instance
           .collection('students')
           .get();
+
       final listaFiltrada = snapshot.docs
           .map((doc) {
             final data = doc.data();
-            final nombreDb = (data['nombre'] ?? '')
-                .toString()
-                .toLowerCase()
-                .trim();
-            final apellidoDb = (data['apellido'] ?? '')
-                .toString()
-                .toLowerCase()
-                .trim();
-            final gradoDb = data['grado']?.toString().trim();
-            final seccionDb = (data['seccion'] ?? '')
-                .toString()
-                .toLowerCase()
-                .trim();
+
+            final nombreDb = normalizar(data['nombre'] ?? '');
+            final apellidoDb = normalizar(data['apellido'] ?? '');
+            final gradoDb = (data['grado'] ?? '').toString().trim();
+            final seccionDb = normalizar(data['seccion'] ?? '');
 
             if (nombreDb == nombreBusq &&
                 apellidoDb == apellidoBusq &&
@@ -238,7 +244,8 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const cremita = Color.fromARGB(248, 252, 230, 230);
+    //const cremita = const Color(0xFFFFFDD0);
+    const cremita = Colors.white;
     const miColor = Color(0xFF8e0b13);
 
     return Scaffold(
@@ -249,31 +256,25 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
           "Registro Anecdótico",
           style: TextStyle(color: Colors.white),
         ),
+        automaticallyImplyLeading: false,
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
             onSelected: (value) async {
-              if (value == 'logout') {
-                await FirebaseAuth.instance.signOut();
-                Navigator.of(context).pushReplacementNamed('login');
-              } else if (value == 'delete') {
-                // lógica eliminación
-              } else if (value == 'reportes') {
+              if (value == 'reportes') {
                 Navigator.pushNamed(context, 'records_summary');
               } else if (value == 'usuarios') {
                 Navigator.pushNamed(context, 'users_list');
-              } else if (value == 'about') {
-                Navigator.pushNamed(context, 'about_app');
+              } else if (value == 'lista') {
+                Navigator.pushNamed(context, 'edit_list');
               }
             },
             itemBuilder: (context) {
               return const [
-                PopupMenuItem(value: 'logout', child: Text("Cerrar sesión")),
-                PopupMenuItem(value: 'delete', child: Text("Eliminar cuenta")),
+                PopupMenuItem(value: 'lista', child: Text("Lista")),
                 PopupMenuItem(value: 'reportes', child: Text("Reportes")),
                 PopupMenuItem(value: 'usuarios', child: Text("Usuarios")),
-                PopupMenuItem(value: 'about', child: Text("Acerca de")),
               ];
             },
           ),
@@ -334,7 +335,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
     );
   }
 
-  Widget _paginaInicio() {
+  /*Widget _paginaInicio() {
     const miColor = Color(0xFF8e0b13);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -344,6 +345,16 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              /*Text(
+                "Introduzca los datos para iniciar a registrar:",
+                style: TextStyle(
+                  color: miColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16), // separador*/
               _buildTextField(_nombreCtrl, "Nombre del alumno"),
               const SizedBox(height: 16),
               _buildTextField(_apellidoCtrl, "Apellido del alumno"),
@@ -351,7 +362,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
               DropdownButtonFormField<String>(
                 value: _gradoSeleccionado,
                 decoration: const InputDecoration(
-                  labelText: 'Grado',
+                  labelText: 'Grado o Curso',
                   border: OutlineInputBorder(),
                 ),
                 items: grados
@@ -399,6 +410,100 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
         ),
       ),
     );
+  }*/
+
+  Widget _paginaInicio() {
+    const miColor = Color(0xFF8e0b13);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Título
+              /* Text(
+                "Buscar alumno",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              */
+              const SizedBox(height: 8),
+
+              // Icono
+              //const Icon(Icons.search, color: Colors.white, size: 48),
+              //const SizedBox(height: 24),
+
+              // Formulario
+              const SizedBox(height: 16), // separador*/
+              _buildTextField(_nombreCtrl, "Nombre del alumno"),
+              const SizedBox(height: 16),
+              _buildTextField(_apellidoCtrl, "Apellido del alumno"),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _gradoSeleccionado,
+                decoration: const InputDecoration(
+                  labelText: 'Grado o Curso',
+                  border: OutlineInputBorder(),
+                ),
+                items: grados
+                    .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _gradoSeleccionado = value;
+                    _seccionSeleccionada = seccionesPorGrado[value!]!.first;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _seccionSeleccionada,
+                decoration: const InputDecoration(
+                  labelText: 'Sección',
+                  border: OutlineInputBorder(),
+                ),
+                items:
+                    (_gradoSeleccionado != null
+                            ? seccionesPorGrado[_gradoSeleccionado]!
+                            : [])
+                        .map<DropdownMenuItem<String>>(
+                          (s) => DropdownMenuItem<String>(
+                            value: s,
+                            child: Text(s),
+                          ),
+                        )
+                        .toList(),
+                onChanged: (value) =>
+                    setState(() => _seccionSeleccionada = value),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: miColor),
+                onPressed: _buscarAlumno,
+                child: const Text(
+                  "Buscar alumno",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+
+              // Instrucciones
+              Text(
+                "Introduce el nombre, apellido, grado y sección del alumno",
+                style: const TextStyle(color: Colors.white70, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _paginaConfiguracion() {
@@ -408,44 +513,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         const SizedBox(height: 20),
-        // Información del usuario
-        ListTile(
-          leading: const CircleAvatar(child: Icon(Icons.person)),
-          title: Text('$nombre $apellido'),
-          subtitle: Text(rolReal ?? ''),
-        ),
         const Divider(),
-        // Cerrar sesión
-        ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Cerrar sesión'),
-          onTap: () async {
-            await FirebaseAuth.instance.signOut();
-            Navigator.of(context).pushReplacementNamed('login');
-          },
-        ),
-        // Eliminar cuenta
-        ListTile(
-          leading: const Icon(Icons.delete),
-          title: const Text('Eliminar cuenta'),
-          onTap: () async {
-            final user = FirebaseAuth.instance.currentUser;
-            if (user != null) {
-              try {
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(user.uid)
-                    .delete();
-                await user.delete();
-                Navigator.of(context).pushReplacementNamed('login');
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Error al eliminar la cuenta: $e")),
-                );
-              }
-            }
-          },
-        ),
         // Acerca de la aplicación
         ListTile(
           leading: const Icon(Icons.info),

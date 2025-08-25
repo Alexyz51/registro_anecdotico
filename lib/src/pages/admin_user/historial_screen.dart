@@ -86,6 +86,7 @@ class _HistorialScreenState extends State<HistorialScreen> {
       return fechaB.compareTo(fechaA);
     });
 
+    if (!mounted) return; // <--- verificar antes de setState final
     setState(() {
       registros = lista;
       estaCargando = false;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'about_app_screen.dart';
 
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
@@ -78,7 +79,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
         children: [
           // Información del usuario
           ListTile(
-            leading: const Icon(Icons.person, color: Colors.white),
+            leading: CircleAvatar(
+              radius: 25, // tamaño del círculo
+              backgroundColor: Colors.white24, // color de fondo del círculo
+              child: const Icon(Icons.person, color: Colors.white, size: 30),
+            ),
             tileColor: miColor,
             title: Text(
               '$nombre $apellido',
@@ -140,15 +145,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
               leading: const Icon(Icons.info, color: Colors.blue),
               title: const Text('Acerca de la aplicación'),
               onTap: () {
-                showAboutDialog(
-                  context: context,
-                  applicationName: 'Registro Anecdótico',
-                  applicationVersion: '1.0.0',
-                  children: const [
-                    Text(
-                      'Esta aplicación permite gestionar registros de conducta de estudiantes.',
-                    ),
-                  ],
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AboutAppScreen(),
+                  ),
                 );
               },
             ),

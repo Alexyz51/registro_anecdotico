@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
+import 'config_screen.dart';
 import '../widgets/breadcrumb_navigation.dart';
 
 class AboutAppScreen extends StatefulWidget {
@@ -12,7 +12,6 @@ class AboutAppScreen extends StatefulWidget {
 class _AboutAppScreenState extends State<AboutAppScreen> {
   final ScrollController _scrollController = ScrollController();
 
-  // Lista de términos con sus descripciones
   final List<Map<String, String>> glosario = [
     {
       'palabra': 'Privacidad',
@@ -37,11 +36,10 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
     {
       'palabra': 'Otra Palabra',
       'descripcion':
-          'Para hacer esto solo es copiar y pegar cambiando el texto como to hago y se genera automaticamente el item.',
+          'Para hacer esto solo es copiar y pegar cambiando el texto y se genera automáticamente el item.',
     },
   ];
 
-  // Mapa para almacenar las claves de cada palabra
   final Map<String, GlobalKey> itemKeys = {};
 
   @override
@@ -65,23 +63,31 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const cremita = const Color.fromARGB(248, 252, 230, 230);
+    const cremita = Color.fromARGB(248, 252, 230, 230);
     const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
-    //Paleta de colores habitual
+
     return Scaffold(
       backgroundColor: cremita,
       appBar: AppBar(
         backgroundColor: cremita,
+        automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Text(
+            '<',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 39, 2, 2),
+            ),
+          ),
           onPressed: () {
-            Navigator.pushAndRemoveUntil(
+            Navigator.pop(
               context,
-              MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
-              (route) => false,
-            );
+              ConfigScreen(),
+            ); // simplemente vuelve a la pantalla anterior
           },
         ),
+
         centerTitle: true,
         title: const Text(
           'Registro Anecdotico',
@@ -91,15 +97,8 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
             color: Color.fromARGB(226, 201, 183, 171),
           ),
         ),
-        automaticallyImplyLeading: true,
-        elevation: 0, // para que no tenga sombra propia
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(4.0), // altura de la barra separadora
-          child: Container(
-            color: rojoOscuro, // tu color rojo oscuro declarado
-            height: 5.0,
-          ),
-        ),
+        elevation: 0,
+        actions: const [],
       ),
       body: SingleChildScrollView(
         controller: _scrollController,
@@ -107,19 +106,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            BreadcrumbBar(
-              items: [
-                BreadcrumbItem(
-                  recorrido: 'Secciones',
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, 'admin_home');
-                  },
-                ),
-                BreadcrumbItem(recorrido: 'Acerca de la app'),
-              ],
-            ),
-            const SizedBox(height: 24),
-            // Glosario interactivo (tipo índice)
             Wrap(
               spacing: 12,
               runSpacing: 8,
@@ -138,8 +124,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
               }).toList(),
             ),
             const SizedBox(height: 24),
-
-            // Contenido en tarjetas
             ...glosario.map((item) {
               return Container(
                 key: itemKeys[item['palabra']],

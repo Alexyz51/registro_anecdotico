@@ -1,5 +1,365 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
+import '../widgets/registros_bottom_sheet.dart';
+
+class RecordsSummaryScreen extends StatefulWidget {
+  const RecordsSummaryScreen({Key? key}) : super(key: key);
+
+  @override
+  State<RecordsSummaryScreen> createState() => _RecordsSummaryScreenState();
+}
+
+class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  bool estaCargando = true;
+  List<Map<String, dynamic>> todosRegistros = [];
+  List<Map<String, dynamic>> registrosFiltrados = [];
+
+  // Filtros
+  String? selectedNivel;
+  String? selectedGrado;
+  String? selectedSeccion;
+  String? selectedColor;
+
+  Set<String> niveles = {};
+  Set<String> grados = {};
+  Set<String> secciones = {};
+  Set<String> colores = {'verde', 'amarillo', 'rojo'};
+
+  @override
+  void initState() {
+    super.initState();
+    cargarRegistros();
+  }
+
+  Future<void> cargarRegistros() async {
+    setState(() {
+      estaCargando = true;
+    });
+
+    try {
+      final registrosSnapshot = await _firestore.collection('records').get();
+      final alumnosSnapshot = await _firestore.collection('students').get();
+
+      Map<String, Map<String, dynamic>> alumnosMap = {};
+      for (var alumnoDoc in alumnosSnapshot.docs) {
+        final alumnoData = alumnoDoc.data();
+        alumnosMap[alumnoDoc.id] = alumnoData;
+        niveles.add((alumnoData['nivel'] ?? '').toString().toLowerCase());
+        grados.add((alumnoData['grado'] ?? '').toString());
+        secciones.add((alumnoData['seccion'] ?? '').toString().toLowerCase());
+      }
+
+      List<Map<String, dynamic>> listaRegistros = [];
+      for (var regDoc in registrosSnapshot.docs) {
+        final regData = regDoc.data();
+        final studentId = regData['studentId'];
+        if (studentId == null) continue;
+
+        final alumno = alumnosMap[studentId];
+        if (alumno == null) continue;
+
+        final registroCompleto = {
+          ...regData,
+          'nombre': alumno['nombre'] ?? '',
+          'apellido': alumno['apellido'] ?? '',
+          'nivel': alumno['nivel'] ?? '',
+          'grado': alumno['grado'] ?? '',
+          'seccion': alumno['seccion'] ?? '',
+        };
+
+        listaRegistros.add(registroCompleto);
+      }
+
+      setState(() {
+        todosRegistros = listaRegistros;
+        registrosFiltrados = List.from(todosRegistros);
+        estaCargando = false;
+      });
+    } catch (e) {
+      print('Error cargando registros: $e');
+      setState(() {
+        todosRegistros = [];
+        registrosFiltrados = [];
+        estaCargando = false;
+      });
+    }
+  }
+
+  void aplicarFiltros() {
+    setState(() {
+      registrosFiltrados = todosRegistros.where((reg) {
+        final matchesNivel =
+            selectedNivel == null || reg['nivel'] == selectedNivel;
+        final matchesGrado =
+            selectedGrado == null || reg['grado'] == selectedGrado;
+        final matchesSeccion =
+            selectedSeccion == null || reg['seccion'] == selectedSeccion;
+        final matchesColor =
+            selectedColor == null ||
+            (reg['color']?.toString().toLowerCase() == selectedColor);
+
+        return matchesNivel && matchesGrado && matchesSeccion && matchesColor;
+      }).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const Color cremita = Color.fromARGB(248, 252, 230, 230);
+    final grisClaro = Colors.grey.shade300;
+    final textoColor = Colors.black87;
+
+    if (estaCargando) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Agrupar registros por alumno
+    Map<String, List<Map<String, dynamic>>> registrosPorAlumno = {};
+    for (var reg in registrosFiltrados) {
+      final alumnoKey = '${reg['nombre']} ${reg['apellido']}';
+      registrosPorAlumno.putIfAbsent(alumnoKey, () => []);
+      registrosPorAlumno[alumnoKey]!.add(reg);
+    }
+
+    return Scaffold(
+      backgroundColor: cremita,
+      appBar: AppBar(
+        backgroundColor: cremita,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Text(
+            '<',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 39, 2, 2),
+            ),
+          ),
+          onPressed: () {
+            Navigator.pop(
+              context,
+              AdminUserHomeScreen(),
+            ); // simplemente vuelve a la pantalla anterior
+          },
+        ),
+
+        centerTitle: true,
+        title: const Text(
+          'Registro Anecdotico',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(226, 201, 183, 171),
+          ),
+        ),
+        elevation: 0,
+        actions: const [],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            // FILTROS (igual que antes)
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      hint: const Text('Nivel'),
+                      value: selectedNivel,
+                      items: niveles
+                          .map(
+                            (n) => DropdownMenuItem(
+                              value: n,
+                              child: Text(
+                                n == 'escolar basica'
+                                    ? 'Escolar Básica'
+                                    : 'Nivel Medio',
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) {
+                        selectedNivel = v;
+                        aplicarFiltros();
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      hint: const Text('Grado'),
+                      value: selectedGrado,
+                      items: grados
+                          .map(
+                            (g) =>
+                                DropdownMenuItem(value: g, child: Text('$g°')),
+                          )
+                          .toList(),
+                      onChanged: (v) {
+                        selectedGrado = v;
+                        aplicarFiltros();
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      hint: const Text('Sección'),
+                      value: selectedSeccion,
+                      items: secciones
+                          .map(
+                            (s) => DropdownMenuItem(
+                              value: s,
+                              child: Text(s.toUpperCase()),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) {
+                        selectedSeccion = v;
+                        aplicarFiltros();
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      hint: const Text('Color'),
+                      value: selectedColor,
+                      items: colores
+                          .map(
+                            (c) => DropdownMenuItem(
+                              value: c,
+                              child: Text(c[0].toUpperCase() + c.substring(1)),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) {
+                        selectedColor = v;
+                        aplicarFiltros();
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // LISTA DE ALUMNOS CON CANTIDAD DE REGISTROS
+            Expanded(
+              child: ListView.separated(
+                itemCount: registrosPorAlumno.keys.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 6),
+                itemBuilder: (context, index) {
+                  final alumnoNombre = registrosPorAlumno.keys.elementAt(index);
+                  final registrosAlumno = registrosPorAlumno[alumnoNombre]!;
+                  final cantidad = registrosAlumno.length;
+
+                  return Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      title: Text(
+                        alumnoNombre,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      trailing: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: cantidad > 0
+                              ? Colors.red.shade100
+                              : Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$cantidad',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: cantidad > 0
+                                ? Colors.red.shade900
+                                : Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                      onTap: cantidad > 0
+                          ? () {
+                              mostrarRegistrosBottomSheet(
+                                context,
+                                registrosAlumno,
+                                alumnoNombre,
+                              );
+                            }
+                          : null,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/*import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:registro_anecdotico/src/pages/widgets/registros_bottom_sheet.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
 import '../widgets/breadcrumb_navigation.dart';
@@ -431,4 +791,4 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
       ),
     );
   }
-}
+}*/
