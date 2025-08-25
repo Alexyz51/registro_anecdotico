@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/lista_alumnos_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'historial_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/config_screen.dart';
 
 class AdminUserHomeScreen extends StatefulWidget {
   const AdminUserHomeScreen({super.key});
@@ -306,7 +307,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
               children: [
                 _paginaInicio(),
                 const HistorialScreen(), // la página de historial dentro del PageView
-                _paginaConfiguracion(),
+                const ConfigScreen(),
               ],
             ),
           ),
@@ -400,7 +401,72 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
     );
   }
 
-  Widget _paginaConfiguracion() => const Center(child: Text("Configuración"));
+  Widget _paginaConfiguracion() {
+    const miColor = Color(0xFF8e0b13);
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const SizedBox(height: 20),
+        // Información del usuario
+        ListTile(
+          leading: const CircleAvatar(child: Icon(Icons.person)),
+          title: Text('$nombre $apellido'),
+          subtitle: Text(rolReal ?? ''),
+        ),
+        const Divider(),
+        // Cerrar sesión
+        ListTile(
+          leading: const Icon(Icons.logout),
+          title: const Text('Cerrar sesión'),
+          onTap: () async {
+            await FirebaseAuth.instance.signOut();
+            Navigator.of(context).pushReplacementNamed('login');
+          },
+        ),
+        // Eliminar cuenta
+        ListTile(
+          leading: const Icon(Icons.delete),
+          title: const Text('Eliminar cuenta'),
+          onTap: () async {
+            final user = FirebaseAuth.instance.currentUser;
+            if (user != null) {
+              try {
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .delete();
+                await user.delete();
+                Navigator.of(context).pushReplacementNamed('login');
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Error al eliminar la cuenta: $e")),
+                );
+              }
+            }
+          },
+        ),
+        // Acerca de la aplicación
+        ListTile(
+          leading: const Icon(Icons.info),
+          title: const Text('Acerca de la aplicación'),
+          onTap: () {
+            showAboutDialog(
+              context: context,
+              applicationName: 'Registro Anecdótico',
+              applicationVersion: '1.0.0',
+              applicationIcon: const Icon(Icons.book),
+              children: const [
+                Text(
+                  'Esta aplicación permite gestionar registros anecdóticos de estudiantes.',
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
 
   Widget _buildTextField(TextEditingController ctrl, String label) {
     return TextField(
