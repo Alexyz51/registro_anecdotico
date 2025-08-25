@@ -139,16 +139,12 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
             ),
           ),
           onPressed: () {
-            Navigator.pop(
-              context,
-              AdminUserHomeScreen(),
-            ); // simplemente vuelve a la pantalla anterior
+            Navigator.pop(context, AdminUserHomeScreen());
           },
         ),
-
         centerTitle: true,
         title: const Text(
-          'Registro Anecdotico',
+          'Registro Anecdótico',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -156,140 +152,155 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
           ),
         ),
         elevation: 0,
-        actions: const [],
       ),
       body: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            // FILTROS (igual que antes)
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade400),
+            // Botón compacto para filtros
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black87,
+                  elevation: 1,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.filter_list),
+                label: const Text('Filtrar por'),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
                     ),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      hint: const Text('Nivel'),
-                      value: selectedNivel,
-                      items: niveles
-                          .map(
-                            (n) => DropdownMenuItem(
-                              value: n,
-                              child: Text(
-                                n == 'escolar basica'
-                                    ? 'Escolar Básica'
-                                    : 'Nivel Medio',
+                    builder: (_) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Nivel
+                            DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Nivel',
                               ),
+                              value: selectedNivel,
+                              items: niveles
+                                  .map(
+                                    (n) => DropdownMenuItem(
+                                      value: n,
+                                      child: Text(
+                                        n == 'escolar basica'
+                                            ? 'Escolar Básica'
+                                            : 'Nivel Medio',
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) {
+                                selectedNivel = v;
+                                aplicarFiltros();
+                                Navigator.pop(context);
+                              },
                             ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        selectedNivel = v;
-                        aplicarFiltros();
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade400),
-                    ),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      hint: const Text('Grado'),
-                      value: selectedGrado,
-                      items: grados
-                          .map(
-                            (g) =>
-                                DropdownMenuItem(value: g, child: Text('$g°')),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        selectedGrado = v;
-                        aplicarFiltros();
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade400),
-                    ),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      hint: const Text('Sección'),
-                      value: selectedSeccion,
-                      items: secciones
-                          .map(
-                            (s) => DropdownMenuItem(
-                              value: s,
-                              child: Text(s.toUpperCase()),
+                            const SizedBox(height: 8),
+                            // Grado
+                            DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Grado',
+                              ),
+                              value: selectedGrado,
+                              items: grados
+                                  .map(
+                                    (g) => DropdownMenuItem(
+                                      value: g,
+                                      child: Text('$g°'),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) {
+                                selectedGrado = v;
+                                aplicarFiltros();
+                                Navigator.pop(context);
+                              },
                             ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        selectedSeccion = v;
-                        aplicarFiltros();
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade400),
-                    ),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      hint: const Text('Color'),
-                      value: selectedColor,
-                      items: colores
-                          .map(
-                            (c) => DropdownMenuItem(
-                              value: c,
-                              child: Text(c[0].toUpperCase() + c.substring(1)),
+                            const SizedBox(height: 8),
+                            // Sección
+                            DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Sección',
+                              ),
+                              value: selectedSeccion,
+                              items: secciones
+                                  .map(
+                                    (s) => DropdownMenuItem(
+                                      value: s,
+                                      child: Text(s.toUpperCase()),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) {
+                                selectedSeccion = v;
+                                aplicarFiltros();
+                                Navigator.pop(context);
+                              },
                             ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        selectedColor = v;
-                        aplicarFiltros();
-                      },
-                    ),
-                  ),
-                ),
-              ],
+                            const SizedBox(height: 8),
+                            // Color
+                            DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Color',
+                              ),
+                              value: selectedColor,
+                              items: colores
+                                  .map(
+                                    (c) => DropdownMenuItem(
+                                      value: c,
+                                      child: Text(
+                                        c[0].toUpperCase() + c.substring(1),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) {
+                                selectedColor = v;
+                                aplicarFiltros();
+                                Navigator.pop(context);
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            // Limpiar filtros
+                            TextButton(
+                              onPressed: () {
+                                selectedNivel = null;
+                                selectedGrado = null;
+                                selectedSeccion = null;
+                                selectedColor = null;
+                                aplicarFiltros();
+                                Navigator.pop(context);
+                              },
+                              child: const Text('Limpiar filtros'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 12),
-            // LISTA DE ALUMNOS CON CANTIDAD DE REGISTROS
+            // Lista de alumnos con cantidad de registros
             Expanded(
               child: ListView.separated(
                 itemCount: registrosPorAlumno.keys.length,
