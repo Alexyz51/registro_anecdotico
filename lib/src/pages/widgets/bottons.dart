@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 
 class HomeButtons extends StatelessWidget {
   final VoidCallback onEscolarBasicaPressed;
@@ -27,3 +27,4 @@ class HomeButtons extends StatelessWidget {
     );
   }
 }
+*/

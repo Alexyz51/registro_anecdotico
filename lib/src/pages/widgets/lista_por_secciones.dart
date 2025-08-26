@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 
 class ListaPorSecciones extends StatelessWidget {
   final Map<String, Map<String, List>> datos;
@@ -167,3 +167,4 @@ class ListaPorSecciones extends StatelessWidget {
     );
   }
 }
+*/

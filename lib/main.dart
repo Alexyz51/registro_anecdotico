@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:registro_anecdotico/src/pages/admin_user/escolar_basica.dart';
+//import 'package:registro_anecdotico/src/pages/admin_user/escolar_basica.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/historial_screen.dart';
-import 'package:registro_anecdotico/src/pages/admin_user/nivel_medio_screen.dart';
+//import 'package:registro_anecdotico/src/pages/admin_user/nivel_medio_screen.dart';
 import 'package:registro_anecdotico/src/pages/splash_screen.dart';
 import 'package:registro_anecdotico/src/pages/start_of_all/home_screen.dart';
 import 'package:registro_anecdotico/src/pages/start_of_all/login_screen.dart';
@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
         "home": (context) => const HomeScreen(),
         "login": (context) => const LoginScreen(),
         "register": (context) => const RegisterScreen(),
-        //"user_home": (context) => const CommonUserHomeScreen(),
+        "user_home": (context) => const CommonUserHomeScreen(),
         "admin_home": (context) => const AdminUserHomeScreen(),
         "edit_list": (context) => const EditListScreen(),
         "users_list": (context) => const UserListScreen(),

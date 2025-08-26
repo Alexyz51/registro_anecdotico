@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+/*import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<Map<String, String>> obtenerUsuarioActual() async {
@@ -19,4 +19,4 @@ Future<Map<String, String>> obtenerUsuarioActual() async {
     'rol': data['rol'] ?? '',
     'rolReal': data['rolReal'] ?? '',
   };
-}
+}*/

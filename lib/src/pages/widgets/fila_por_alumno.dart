@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 
 class FilaAlumno extends StatelessWidget {
   final Map alumno;
@@ -63,3 +63,4 @@ class FilaAlumno extends StatelessWidget {
     );
   }
 }
+*/

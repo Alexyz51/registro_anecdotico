@@ -1,37 +1,18 @@
-/*import 'package:flutter/material.dart';
-
-class CommonUserHomeScreen extends StatefulWidget {
-  const CommonUserHomeScreen({super.key});
-
-  @override
-  State<CommonUserHomeScreen> createState() => _CommonUserHomeScreenState();
-}
-
-class _CommonUserHomeScreenState extends State<CommonUserHomeScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Pantalla de Usuario')),
-      body: const Center(child: Text('¡Bienvenida, Usuario!')),
-    );
-  }
-}
-*/
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:registro_anecdotico/src/pages/admin_user/config_screen.dart';
-import 'package:registro_anecdotico/src/pages/admin_user/historial_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/lista_alumnos_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'historial_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/config_screen.dart';
 
-class CommonUserHomeScreen extends StatefulWidget {
-  const CommonUserHomeScreen({super.key});
+class MobileAdminHomeScreen extends StatefulWidget {
+  const MobileAdminHomeScreen({super.key});
 
   @override
-  State<CommonUserHomeScreen> createState() => _CommonUserHomeScreenState();
+  State<MobileAdminHomeScreen> createState() => _MobileAdminHomeScreenState();
 }
 
-class _CommonUserHomeScreenState extends State<CommonUserHomeScreen> {
+class _MobileAdminHomeScreenState extends State<MobileAdminHomeScreen> {
   String? _itemSeleccionado;
   bool _cargando = true;
   String? _cargoSeleccionado;
@@ -277,6 +258,27 @@ class _CommonUserHomeScreenState extends State<CommonUserHomeScreen> {
         ),
         automaticallyImplyLeading: false,
         centerTitle: true,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (value) async {
+              if (value == 'reportes') {
+                Navigator.pushNamed(context, 'records_summary');
+              } else if (value == 'usuarios') {
+                Navigator.pushNamed(context, 'users_list');
+              } else if (value == 'lista') {
+                Navigator.pushNamed(context, 'edit_list');
+              }
+            },
+            itemBuilder: (context) {
+              return const [
+                PopupMenuItem(value: 'lista', child: Text("Lista")),
+                PopupMenuItem(value: 'reportes', child: Text("Reportes")),
+                PopupMenuItem(value: 'usuarios', child: Text("Usuarios")),
+              ];
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [

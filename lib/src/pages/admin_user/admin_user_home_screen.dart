@@ -1,4 +1,25 @@
 import 'package:flutter/material.dart';
+import 'mobile_admin_home_screen.dart';
+import 'desktop_admin_user_home_screen.dart';
+
+class AdminUserHomeScreen extends StatelessWidget {
+  const AdminUserHomeScreen({super.key});
+
+  bool esPantallaGrande(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 800;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (esPantallaGrande(context)) {
+      return const DesktopAdminHomeScreen();
+    } else {
+      return const MobileAdminHomeScreen();
+    }
+  }
+}
+
+/*import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/lista_alumnos_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -242,6 +263,10 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
     }
   }
 
+bool esPantallaGrande(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 800;
+  }
+
   @override
   Widget build(BuildContext context) {
     //const cremita = const Color(0xFFFFFDD0);
@@ -439,7 +464,7 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
               //const Icon(Icons.search, color: Colors.white, size: 48),
               //const SizedBox(height: 24),
 
-              // Formulario
+    /*          // Formulario
               const SizedBox(height: 16), // separador*/
               _buildTextField(_nombreCtrl, "Nombre del alumno"),
               const SizedBox(height: 16),
@@ -1127,4 +1152,4 @@ class _AdminUserHomeScreenState extends State<AdminUserHomeScreen> {
     );
   }
 }
-*/
+*/*/
