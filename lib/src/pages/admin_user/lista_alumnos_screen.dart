@@ -160,18 +160,27 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color cremita = Color.fromARGB(248, 252, 230, 230);
+    const cremita = Colors.white;
+    const miColor = Color(0xFF8e0b13);
 
     return Scaffold(
       backgroundColor: cremita,
       appBar: AppBar(
-        backgroundColor: cremita,
-        title: const Text('Registrar Conducta', style: TextStyle(fontSize: 16)),
-        centerTitle: true,
+        backgroundColor: miColor,
+        title: const Text(
+          "Registrar Conducta",
+          style: TextStyle(color: Colors.white),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          color: Colors.white,
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
+        centerTitle: true,
+        automaticallyImplyLeading: true,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -181,25 +190,30 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${widget.alumno['nombre']} ${widget.alumno['apellido']} (${widget.grado}° Grado - Sección ${widget.seccion.toUpperCase()})',
+                '${widget.alumno['nombre']} ${widget.alumno['apellido']} \n${widget.grado}° Grado - Sección ${widget.seccion.toUpperCase()}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
-                'Clasificación',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildColorCircle('verde'),
-                  const SizedBox(width: 10),
-                  _buildColorCircle('amarillo'),
-                  const SizedBox(width: 10),
-                  _buildColorCircle('rojo'),
+                  const Text(
+                    'Clasificación:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(width: 12),
+                  Row(
+                    children: [
+                      _buildColorCircle('verde'),
+                      const SizedBox(width: 8),
+                      _buildColorCircle('amarillo'),
+                      const SizedBox(width: 8),
+                      _buildColorCircle('rojo'),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -267,13 +281,13 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  ElevatedButton(
-                    onPressed: registrarConducta,
-                    child: const Text('Guardar'),
-                  ),
                   OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Cancelar'),
+                  ),
+                  ElevatedButton(
+                    onPressed: registrarConducta,
+                    child: const Text('Guardar'),
                   ),
                 ],
               ),

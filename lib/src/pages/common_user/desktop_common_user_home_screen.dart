@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'historial_screen.dart';
-import 'config_screen.dart';
-import 'package:registro_anecdotico/src/pages/admin_user/lista_alumnos_screen.dart';
-import 'records_summary_screen.dart';
-import 'users_list_screen.dart';
-import 'edit_list_screen.dart';
+//import 'package:registro_anecdotico/src/pages/admin_user/lista_alumnos_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/config_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/historial_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/records_summary_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/edit_list_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/users_list_screen.dart';
 
-class DesktopAdminHomeScreen extends StatefulWidget {
-  const DesktopAdminHomeScreen({super.key});
+class DesktopAdminHomeUserScreen extends StatefulWidget {
+  const DesktopAdminHomeUserScreen({super.key});
 
   @override
-  State<DesktopAdminHomeScreen> createState() => _DesktopAdminHomeScreenState();
+  State<DesktopAdminHomeUserScreen> createState() =>
+      _DesktopAdminHomeUserScreenState();
 }
 
-class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
+class _DesktopAdminHomeUserScreenState
+    extends State<DesktopAdminHomeUserScreen> {
   int selectedIndex = 0;
+  final String uidActual = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   Widget _mostrarContenido() {
     switch (selectedIndex) {
@@ -251,20 +254,8 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
                   onTap: () => setState(() => selectedIndex = 0),
                 ),
                 ListTile(
-                  title: const Text("Registros"),
-                  onTap: () => setState(() => selectedIndex = 1),
-                ),
-                ListTile(
                   title: const Text("Historial"),
                   onTap: () => setState(() => selectedIndex = 2),
-                ),
-                ListTile(
-                  title: const Text("Lista de Alumnos"),
-                  onTap: () => setState(() => selectedIndex = 3),
-                ),
-                ListTile(
-                  title: const Text("Usuarios"),
-                  onTap: () => setState(() => selectedIndex = 4),
                 ),
               ],
             ),
@@ -277,134 +268,116 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
 
           const VerticalDivider(thickness: 1, width: 1),
 
-          // Panel de registros recientes, solo si mostrarRegistrosRecientes = true
-          if (mostrarRegistrosRecientes)
-            Container(
-              width: 300,
-              color: Colors.grey.shade200,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Cabecera con título y X
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "📋 Registros Recientes",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          setState(() {
-                            mostrarRegistrosRecientes = false;
-                          });
-                        },
-                      ),
-                    ],
+          // Panel de historial personal
+          /*Container(
+            width: 300,
+            color: Colors.grey.shade200,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "📋 Mi Historial",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('records')
-                          .orderBy('fecha', descending: true)
-                          .limit(5)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('records')
+                        .where(
+                          'userId',
+                          isEqualTo: FirebaseAuth.instance.currentUser?.uid,
+                        )
+                        .orderBy('fecha', descending: true)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                        final registros = snapshot.data!.docs;
-                        if (registros.isEmpty) {
-                          return const Center(
-                            child: Text("No hay registros recientes."),
-                          );
-                        }
-
-                        return ListView.builder(
-                          itemCount: registros.length,
-                          itemBuilder: (context, index) {
-                            final registro =
-                                registros[index].data() as Map<String, dynamic>;
-                            final studentId =
-                                registro['studentId'] ?? registro['studentid'];
-
-                            return FutureBuilder<DocumentSnapshot>(
-                              future: FirebaseFirestore.instance
-                                  .collection('students')
-                                  .doc(studentId)
-                                  .get(),
-                              builder: (context, studentSnapshot) {
-                                if (!studentSnapshot.hasData) {
-                                  return const ListTile(
-                                    title: Text("Cargando..."),
-                                  );
-                                }
-
-                                if (!studentSnapshot.data!.exists) {
-                                  return const ListTile(
-                                    title: Text("Alumno no encontrado"),
-                                  );
-                                }
-
-                                final alumno =
-                                    studentSnapshot.data!.data()
-                                        as Map<String, dynamic>? ??
-                                    {};
-                                final nombre = alumno['nombre'] ?? '';
-                                final apellido = alumno['apellido'] ?? '';
-                                final grado = alumno['grado'] ?? '';
-                                final seccion = alumno['seccion'] ?? '';
-
-                                Color colorCard;
-                                switch (registro['color']) {
-                                  case 'verde':
-                                    colorCard = Colors.green.shade100;
-                                    break;
-                                  case 'amarillo':
-                                    colorCard = Colors.amber.shade100;
-                                    break;
-                                  case 'rojo':
-                                    colorCard = Colors.red.shade100;
-                                    break;
-                                  default:
-                                    colorCard = Colors.grey.shade100;
-                                }
-
-                                return Card(
-                                  color: colorCard,
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: ListTile(
-                                    // Aquí quitamos leading para que no aparezca nada a la izquierda
-                                    leading: null,
-                                    title: Text("$nombre $apellido"),
-                                    subtitle: Text(
-                                      "Grado: $grado - Sección: $seccion\n${registro['descripcion'] ?? ''}",
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    isThreeLine: true,
-                                  ),
-                                );
-                              },
-                            );
-                          },
+                      final registros = snapshot.data!.docs;
+                      if (registros.isEmpty) {
+                        return const Center(
+                          child: Text("No tienes registros en tu historial."),
                         );
-                      },
-                    ),
+                      }
+
+                      return ListView.builder(
+                        itemCount: registros.length,
+                        itemBuilder: (context, index) {
+                          final registro =
+                              registros[index].data() as Map<String, dynamic>;
+                          final studentId = registro['studentId'];
+
+                          return FutureBuilder<DocumentSnapshot>(
+                            future: FirebaseFirestore.instance
+                                .collection('students')
+                                .doc(studentId)
+                                .get(),
+                            builder: (context, studentSnapshot) {
+                              if (!studentSnapshot.hasData) {
+                                return const ListTile(
+                                  title: Text("Cargando..."),
+                                );
+                              }
+                              if (!studentSnapshot.data!.exists) {
+                                return const ListTile(
+                                  title: Text("Alumno no encontrado"),
+                                );
+                              }
+
+                              final alumno =
+                                  studentSnapshot.data!.data()
+                                      as Map<String, dynamic>? ??
+                                  {};
+                              final nombre = alumno['nombre'] ?? '';
+                              final apellido = alumno['apellido'] ?? '';
+                              final grado = alumno['grado'] ?? '';
+                              final seccion = alumno['seccion'] ?? '';
+
+                              Color colorCard;
+                              switch (registro['color']) {
+                                case 'verde':
+                                  colorCard = Colors.green.shade100;
+                                  break;
+                                case 'amarillo':
+                                  colorCard = Colors.amber.shade100;
+                                  break;
+                                case 'rojo':
+                                  colorCard = Colors.red.shade100;
+                                  break;
+                                default:
+                                  colorCard = Colors.grey.shade100;
+                              }
+
+                              return Card(
+                                color: colorCard,
+                                margin: const EdgeInsets.only(bottom: 8),
+                                child: ListTile(
+                                  title: Text("$nombre $apellido"),
+                                  subtitle: Text(
+                                    "Grado: $grado - Sección: $seccion\n${registro['descripcion'] ?? ''}",
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  isThreeLine: true,
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),*/
         ],
       ),
     );

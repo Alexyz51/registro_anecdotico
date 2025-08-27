@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'admin_user_home_screen.dart';
-import 'package:registro_anecdotico/src/pages/common_user/common_user_home_screen.dart';
+//import 'admin_user_home_screen.dart';
+//import 'package:registro_anecdotico/src/pages/common_user/common_user_home_screen.dart';
 
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
@@ -24,39 +24,33 @@ class _UserListScreenState extends State<UserListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color cremita = Color.fromARGB(248, 252, 230, 230);
-    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
+    final screenWidth = MediaQuery.of(context).size.width;
+    //String hexColor = '#8e0b13';
+    const cremita = Colors.white;
+    const miColor = Color(0xFF8e0b13);
     final isCelular = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: cremita,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // Aquí puedes personalizar según tu lógica de usuario
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
-              (route) => false,
-            );
-          },
-        ),
-        centerTitle: true,
-        title: const Text(
-          'Registro Anecdotico',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(226, 201, 183, 171),
-          ),
-        ),
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4.0),
-          child: Container(color: rojoOscuro, height: 5.0),
-        ),
-      ),
+      backgroundColor: cremita,
+      appBar: screenWidth < 800
+          ? AppBar(
+              backgroundColor: miColor,
+              title: const Text(
+                "Registro Anecdótico",
+                style: TextStyle(color: Colors.white),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                color: Colors.white,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              centerTitle: true,
+              automaticallyImplyLeading: true,
+              elevation: 0,
+            )
+          : null,
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('users').snapshots(),
         builder: (context, snapshot) {

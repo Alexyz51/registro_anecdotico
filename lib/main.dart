@@ -24,33 +24,76 @@ import 'package:registro_anecdotico/src/pages/admin_user/config_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-//En la funcion main me aseguro de que se cumplan las condiciones para que la app corra
-//Nos aseguramos de que el sistema de flutter este listo y de tener configurado e instalado firebase
-//Tipo la configuracion se hizo cuando instale firebase_CLI y cosas que esta en el discord
+// En la funcion main me aseguro de que se cumplan las condiciones para que la app corra
+// Nos aseguramos de que el sistema de flutter este listo y de tener configurado e instalado firebase
+// Tipo la configuracion se hizo cuando instale firebase_CLI y cosas que esta en el discord
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
-//Pongo la estructura de un statelessW pq voy a estar trabajado con
-//estados no mutables que serian las rutas
-class MyApp extends StatelessWidget {
-  //para que sea inmutable
+// Pongo la estructura de un StatefulWidget pq vamos a necesitar cambiar el tema dinámicamente
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  //metodo obligatorio para mostrar pantalla bueno es este caso lo que me va a devolvel va a ser la
-  //primera pantalla en un principio pero van a estar trazadas todas las rutas a seguir aqui
+  // Para poder acceder al state desde cualquier pantalla y cambiar el tema
+  static _MyAppState? of(BuildContext context) =>
+      context.findAncestorStateOfType<_MyAppState>();
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode =
+      ThemeMode.system; // Por defecto sigue el tema del sistema
+
+  // Función que permite cambiar el tema desde cualquier pantalla
+  void changeTheme(ThemeMode newTheme) {
+    setState(() {
+      _themeMode = newTheme;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    //simplemente retorna un Container, que no muestra nada visible.Es solo una plantilla vacía. Sirve para empezar a construir la app.
-    //Pero yo le pongo MaterialApp que es como una funcion donde declarare la ruta inicial y todas las rutas (ruta=>pantalla)
     return MaterialApp(
-      //propiedad boleana que "muestra un banner rojo de debug" esta desactivado
       debugShowCheckedModeBanner: false,
 
+      // Tema claro
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primaryColor: const Color(0xFF8e0b13),
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF8e0b13),
+          foregroundColor: Colors.white,
+        ),
+        cardColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
+
+      // Tema oscuro
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: const Color(0xFF8e0b13),
+        scaffoldBackgroundColor: Colors.grey[900],
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF8e0b13),
+          foregroundColor: Colors.white,
+        ),
+        cardColor: Colors.grey[850],
+        iconTheme: const IconThemeData(color: Colors.white70),
+      ),
+
+      // Indica qué tema usar
+      themeMode: _themeMode,
+
+      // Inicial
       initialRoute: "splash",
 
+      // Rutas de la app
       routes: {
         "splash": (context) => const SplashScreen(),
         "home": (context) => const HomeScreen(),
@@ -68,7 +111,7 @@ class MyApp extends StatelessWidget {
         "config": (context) => const ConfigScreen(),
         //"lista_escolar": (context) => ListaAlumnosEscolarBasicaScreen(),
         //"historial": (context) => const HistorialScreen(),
-        //common usesr
+        // Common user
         //"nivel_medio1": (context) => const NivelMedio1Screen(),
         //"escolar_basica1": (context) => const EscolarBasica1Screen(),
         //"about_app1": (context) => const AboutApp1Screen(),

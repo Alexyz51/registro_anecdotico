@@ -63,43 +63,32 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const cremita = Color.fromARGB(248, 252, 230, 230);
-    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
+    final screenWidth = MediaQuery.of(context).size.width;
+    //String hexColor = '#8e0b13';
+    const cremita = Colors.white;
+    const miColor = Color(0xFF8e0b13);
 
     return Scaffold(
       backgroundColor: cremita,
-      appBar: AppBar(
-        backgroundColor: cremita,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Text(
-            '<',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 39, 2, 2),
-            ),
-          ),
-          onPressed: () {
-            Navigator.pop(
-              context,
-              ConfigScreen(),
-            ); // simplemente vuelve a la pantalla anterior
-          },
-        ),
-
-        centerTitle: true,
-        title: const Text(
-          'Registro Anecdotico',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(226, 201, 183, 171),
-          ),
-        ),
-        elevation: 0,
-        actions: const [],
-      ),
+      appBar: screenWidth < 800
+          ? AppBar(
+              backgroundColor: miColor,
+              title: const Text(
+                "Registro Anecdótico",
+                style: TextStyle(color: Colors.white),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                color: Colors.white,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              centerTitle: true,
+              automaticallyImplyLeading: true,
+              elevation: 0,
+            )
+          : null, // No se muestra AppBar en pantallas grandes
       body: SingleChildScrollView(
         controller: _scrollController,
         padding: const EdgeInsets.all(16),
@@ -116,7 +105,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                     item['palabra']!,
                     style: const TextStyle(
                       fontSize: 16,
-                      color: rojoOscuro,
+                      color: Colors.black,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -129,7 +118,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                 key: itemKeys[item['palabra']],
                 margin: const EdgeInsets.only(bottom: 20),
                 child: Card(
-                  color: const Color.fromARGB(248, 255, 243, 243),
+                  color: Colors.white,
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -142,7 +131,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                         Text(
                           item['palabra']!,
                           style: const TextStyle(
-                            color: Color.fromARGB(255, 201, 183, 171),
+                            color: Colors.black,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -151,7 +140,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                         Text(
                           item['descripcion']!,
                           style: const TextStyle(
-                            color: rojoOscuro,
+                            color: Colors.black,
                             fontSize: 14,
                           ),
                         ),

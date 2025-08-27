@@ -502,65 +502,43 @@ class _EditListScreenState extends State<EditListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String hexColor = '#8e0b13';
-    int colorValue = int.parse(hexColor.substring(1), radix: 16);
-    Color miColor = Color(colorValue | 0xFF000000);
-    const cremita = const Color.fromARGB(248, 252, 230, 230);
+    final screenWidth = MediaQuery.of(context).size.width;
+    //String hexColor = '#8e0b13';
+    const cremita = Colors.white;
+    const miColor = Color(0xFF8e0b13);
+
+    //int colorValue = int.parse(hexColor.substring(1), radix: 16);
+    //Color miColor = Color(colorValue | 0xFF000000);
+    //const cremita = const Color.fromARGB(248, 252, 230, 230);
     const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
     //Paleta de colores habitual
     if (cargando) return const Center(child: CircularProgressIndicator());
 
     return Scaffold(
       backgroundColor: cremita,
-      appBar: AppBar(
-        backgroundColor: cremita,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => AdminUserHomeScreen()),
-              (route) => false,
-            );
-          },
-        ),
-        centerTitle: true,
-        title: const Text(
-          'Registro Anecdotico',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(226, 201, 183, 171),
-          ),
-        ),
-        automaticallyImplyLeading: true,
-        elevation: 0, // para que no tenga sombra propia
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(4.0), // altura de la barra separadora
-          child: Container(
-            color: rojoOscuro, // tu color rojo oscuro declarado
-            height: 5.0,
-          ),
-        ),
-      ),
+      appBar: screenWidth < 800
+          ? AppBar(
+              backgroundColor: miColor,
+              title: const Text(
+                "Registro Anecdótico",
+                style: TextStyle(color: Colors.white),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                color: Colors.white,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              centerTitle: true,
+              automaticallyImplyLeading: true,
+              elevation: 0,
+            )
+          : null, // No se muestra AppBar en pantallas grandes
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: BreadcrumbBar(
-              items: [
-                BreadcrumbItem(
-                  recorrido: 'Secciones',
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, 'admin_home');
-                  },
-                ),
-                BreadcrumbItem(recorrido: 'Editar lista'),
-              ],
-            ),
-          ),
-          //const SizedBox(height: 24),
+          const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Wrap(

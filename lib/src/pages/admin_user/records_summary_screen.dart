@@ -108,12 +108,16 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color cremita = Color.fromARGB(248, 252, 230, 230);
-    final grisClaro = Colors.grey.shade300;
+    final screenWidth = MediaQuery.of(context).size.width;
+    //String hexColor = '#8e0b13';
+    const cremita = Colors.white;
+    const miColor = Color(0xFF8e0b13);
 
-    if (estaCargando) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    //int colorValue = int.parse(hexColor.substring(1), radix: 16);
+    //Color miColor = Color(colorValue | 0xFF000000);
+    //const cremita = const Color.fromARGB(248, 252, 230, 230);
+
+    //Paleta de colores habitual
 
     // Agrupar registros por alumno
     Map<String, List<Map<String, dynamic>>> registrosPorAlumno = {};
@@ -125,33 +129,25 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
 
     return Scaffold(
       backgroundColor: cremita,
-      appBar: AppBar(
-        backgroundColor: cremita,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Text(
-            '<',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 39, 2, 2),
-            ),
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        centerTitle: true,
-        title: const Text(
-          'Registro Anecdótico',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(226, 201, 183, 171),
-          ),
-        ),
-        elevation: 0,
-      ),
+      appBar: screenWidth < 800
+          ? AppBar(
+              backgroundColor: miColor,
+              title: const Text(
+                "Registro Anecdótico",
+                style: TextStyle(color: Colors.white),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                color: Colors.white,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              centerTitle: true,
+              automaticallyImplyLeading: true,
+              elevation: 0,
+            )
+          : null, // No se muestra AppBar en pantallas grandes
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -359,16 +355,16 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: cremita,
-        elevation: 0,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            'Total de registros: ${registrosFiltrados.length}',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+      bottomNavigationBar: Container(
+        color: const Color(0xFF8e0b13), // mismo color del AppBar
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          'Cantidad de registros: ${registrosFiltrados.length}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
