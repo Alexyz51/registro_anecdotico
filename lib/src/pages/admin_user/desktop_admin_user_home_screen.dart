@@ -41,28 +41,36 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
 
   Widget _paginaInicio() {
     return Center(
-      child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Buscar Alumno",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Card(
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              height: 360, // <-- altura total de la Card
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Buscar Alumno",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildBuscarAlumnoForm(),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildBuscarAlumnoForm(),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Formulario de búsqueda de alumnos
+  // Formulario vertical
   Widget _buildBuscarAlumnoForm() {
     final TextEditingController _nombreCtrl = TextEditingController();
     final TextEditingController _apellidoCtrl = TextEditingController();
@@ -78,57 +86,127 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
       '3': ['Informática', 'Ciencias Básicas'],
     };
 
+    // Función para normalizar texto
+    String normalizar(String texto) {
+      texto = texto.toLowerCase();
+      texto = texto
+          .replaceAll('á', 'a')
+          .replaceAll('é', 'e')
+          .replaceAll('í', 'i')
+          .replaceAll('ó', 'o')
+          .replaceAll('ú', 'u')
+          .replaceAll('ñ', 'n');
+      return texto.trim();
+    }
+
+    Future<void> _buscarAlumno() async {
+      final nombreBusq = normalizar(_nombreCtrl.text);
+      final apellidoBusq = normalizar(_apellidoCtrl.text);
+      final gradoBusq = _gradoSeleccionado;
+      final seccionBusq = normalizar(_seccionSeleccionada ?? '');
+
+      if (nombreBusq.isEmpty ||
+          apellidoBusq.isEmpty ||
+          gradoBusq == null ||
+          seccionBusq.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Complete todos los campos")),
+        );
+        return;
+      }
+
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('students')
+            .get();
+
+        final listaFiltrada = snapshot.docs
+            .map((doc) {
+              final data = doc.data();
+
+              final nombreDb = normalizar(data['nombre'] ?? '');
+              final apellidoDb = normalizar(data['apellido'] ?? '');
+              final gradoDb = (data['grado'] ?? '').toString().trim();
+              final seccionDb = normalizar(data['seccion'] ?? '');
+
+              if (nombreDb == nombreBusq &&
+                  apellidoDb == apellidoBusq &&
+                  gradoDb == gradoBusq &&
+                  seccionDb == seccionBusq) {
+                final alumnoConId = Map<String, dynamic>.from(data);
+                alumnoConId['docId'] = doc.id;
+                return alumnoConId;
+              }
+              return null;
+            })
+            .where((alumno) => alumno != null)
+            .cast<Map<String, dynamic>>()
+            .toList();
+
+        if (listaFiltrada.isNotEmpty) {
+          final estudiante = listaFiltrada.first;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ListaAlumnosScreen(
+                alumno: estudiante,
+                grado: estudiante['grado'].toString(),
+                seccion: estudiante['seccion'],
+                nivel: estudiante['nivel'] ?? 'Nivel desconocido',
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("No se encontró al alumno")),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error al buscar alumno: $e")));
+      }
+    }
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _nombreCtrl,
-                decoration: const InputDecoration(labelText: "Nombre"),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextField(
-                controller: _apellidoCtrl,
-                decoration: const InputDecoration(labelText: "Apellido"),
-              ),
-            ),
-          ],
+        TextField(
+          controller: _nombreCtrl,
+          decoration: const InputDecoration(labelText: "Nombre"),
         ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _gradoSeleccionado,
-                items: grados
-                    .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                    .toList(),
-                onChanged: (value) => _gradoSeleccionado = value,
-                decoration: const InputDecoration(labelText: "Grado"),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _seccionSeleccionada,
-                items: seccionesPorGrado[_gradoSeleccionado]!
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (value) => _seccionSeleccionada = value,
-                decoration: const InputDecoration(labelText: "Sección"),
-              ),
-            ),
-          ],
+        const SizedBox(height: 12),
+        TextField(
+          controller: _apellidoCtrl,
+          decoration: const InputDecoration(labelText: "Apellido"),
         ),
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: () {
-            // Lógica de búsqueda
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          value: _gradoSeleccionado,
+          items: grados
+              .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+              .toList(),
+          onChanged: (value) {
+            setState(() {
+              _gradoSeleccionado = value;
+              _seccionSeleccionada = seccionesPorGrado[value!]!.first;
+            });
           },
-          child: const Text("Buscar"),
+          decoration: const InputDecoration(labelText: "Grado"),
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          value: _seccionSeleccionada,
+          items: seccionesPorGrado[_gradoSeleccionado]!
+              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+              .toList(),
+          onChanged: (value) => setState(() => _seccionSeleccionada = value),
+          decoration: const InputDecoration(labelText: "Sección"),
+        ),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: _buscarAlumno,
+          child: const Text("Buscar alumno"),
         ),
       ],
     );
