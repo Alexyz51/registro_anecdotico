@@ -160,11 +160,11 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const cremita = Colors.white;
+    //const cremita = Colors.white;
     const miColor = Color(0xFF8e0b13);
 
     return Scaffold(
-      backgroundColor: cremita,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: miColor,
         title: const Text(

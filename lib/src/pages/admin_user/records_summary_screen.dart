@@ -110,7 +110,7 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     //String hexColor = '#8e0b13';
-    const cremita = Colors.white;
+    //const cremita = Colors.white;
     const miColor = Color(0xFF8e0b13);
 
     //int colorValue = int.parse(hexColor.substring(1), radix: 16);
@@ -128,7 +128,7 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
     }
 
     return Scaffold(
-      backgroundColor: cremita,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: screenWidth < 800
           ? AppBar(
               backgroundColor: miColor,
@@ -160,9 +160,9 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade400),
+                        border: Border.all(color: Theme.of(context).cardColor),
                       ),
                       child: DropdownButton<String>(
                         isExpanded: true,
@@ -193,9 +193,9 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade400),
+                        border: Border.all(color: Theme.of(context).cardColor),
                       ),
                       child: DropdownButton<String>(
                         isExpanded: true,
@@ -226,9 +226,9 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade400),
+                        border: Border.all(color: Theme.of(context).cardColor),
                       ),
                       child: DropdownButton<String>(
                         isExpanded: true,
@@ -255,9 +255,9 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade400),
+                        border: Border.all(color: Theme.of(context).cardColor),
                       ),
                       child: DropdownButton<String>(
                         isExpanded: true,

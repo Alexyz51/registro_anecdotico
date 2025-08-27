@@ -26,12 +26,12 @@ class _UserListScreenState extends State<UserListScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     //String hexColor = '#8e0b13';
-    const cremita = Colors.white;
+    //const cremita = Colors.white;
     const miColor = Color(0xFF8e0b13);
     final isCelular = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
-      backgroundColor: cremita,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: screenWidth < 800
           ? AppBar(
               backgroundColor: miColor,

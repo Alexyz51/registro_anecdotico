@@ -504,18 +504,18 @@ class _EditListScreenState extends State<EditListScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     //String hexColor = '#8e0b13';
-    const cremita = Colors.white;
+    //const cremita = Colors.white;
     const miColor = Color(0xFF8e0b13);
 
     //int colorValue = int.parse(hexColor.substring(1), radix: 16);
     //Color miColor = Color(colorValue | 0xFF000000);
     //const cremita = const Color.fromARGB(248, 252, 230, 230);
-    const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
+    //const rojoOscuro = Color.fromARGB(255, 39, 2, 2);
     //Paleta de colores habitual
     if (cargando) return const Center(child: CircularProgressIndicator());
 
     return Scaffold(
-      backgroundColor: cremita,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: screenWidth < 800
           ? AppBar(
               backgroundColor: miColor,

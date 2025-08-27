@@ -1,4 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+// Pantallas importadas
+import 'package:registro_anecdotico/src/pages/splash_screen.dart';
+import 'package:registro_anecdotico/src/pages/start_of_all/home_screen.dart';
+import 'package:registro_anecdotico/src/pages/start_of_all/login_screen.dart';
+import 'package:registro_anecdotico/src/pages/start_of_all/register_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/admin_user_home_screen.dart';
+import 'package:registro_anecdotico/src/pages/common_user/common_user_home_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/edit_list_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/users_list_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/about_app_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/records_summary_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/config_screen.dart';
+import 'package:registro_anecdotico/src/pages/admin_user/historial_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(const MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  static _MyAppState? of(BuildContext context) =>
+      context.findAncestorStateOfType<_MyAppState>();
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  ThemeMode get themeMode => _themeMode;
+
+  void changeTheme(ThemeMode newTheme) {
+    setState(() {
+      _themeMode = newTheme;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
+      // 🔹 Tema claro
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primaryColor: const Color(0xFF8e0b13),
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF8e0b13),
+          foregroundColor: Colors.white,
+        ),
+        cardColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black87),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.black87),
+        ),
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(),
+        ),
+      ),
+
+      // 🔹 Tema oscuro
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: const Color(0xFF8e0b13),
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF8e0b13),
+          foregroundColor: Colors.white,
+        ),
+        cardColor: const Color(0xFF1E1E1E),
+        iconTheme: const IconThemeData(color: Colors.white70),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.white70),
+        ),
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Color(0xFF2C2C2C),
+          border: OutlineInputBorder(),
+        ),
+      ),
+
+      themeMode: _themeMode,
+
+      initialRoute: "splash",
+      routes: {
+        "splash": (context) => const SplashScreen(),
+        "home": (context) => const HomeScreen(),
+        "login": (context) => const LoginScreen(),
+        "register": (context) => const RegisterScreen(),
+        "user_home": (context) => const CommonUserHomeScreen(),
+        "admin_home": (context) => const AdminUserHomeScreen(),
+        "edit_list": (context) => const EditListScreen(),
+        "users_list": (context) => const UserListScreen(),
+        "about_app": (context) => const AboutAppScreen(),
+        "records_summary": (context) => const RecordsSummaryScreen(),
+        "historial": (context) => HistorialScreen(),
+        "config": (context) => const ConfigScreen(),
+      },
+    );
+  }
+}
+
+
+/*import 'package:flutter/material.dart';
 //import 'package:registro_anecdotico/src/pages/admin_user/escolar_basica.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/historial_screen.dart';
 //import 'package:registro_anecdotico/src/pages/admin_user/nivel_medio_screen.dart';
@@ -48,6 +162,9 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode =
       ThemeMode.system; // Por defecto sigue el tema del sistema
+
+  // Getter público para acceder al tema desde cualquier pantalla
+  ThemeMode get themeMode => _themeMode;
 
   // Función que permite cambiar el tema desde cualquier pantalla
   void changeTheme(ThemeMode newTheme) {
@@ -119,3 +236,4 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+*/

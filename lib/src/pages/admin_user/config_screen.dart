@@ -167,6 +167,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'about_app_screen.dart';
+import 'package:registro_anecdotico/main.dart';
 
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
@@ -182,10 +183,20 @@ class _ConfigScreenState extends State<ConfigScreen> {
   String rolApp = '';
   bool estaCargando = true;
 
+  // -------------------- DARK MODE --------------------
+  bool darkMode = false;
+
   @override
   void initState() {
     super.initState();
     _cargarDatosUsuario();
+
+    // Inicializamos el switch de tema según el estado actual de MyApp
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        darkMode = MyApp.of(context)?.themeMode == ThemeMode.dark;
+      });
+    });
   }
 
   Future<void> _cargarDatosUsuario() async {
@@ -330,6 +341,25 @@ class _ConfigScreenState extends State<ConfigScreen> {
             ),
           ),
           const SizedBox(height: 20),
+
+          // -------------------- SWITCH MODO OSCURO --------------------
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.dark_mode, color: Colors.blueGrey),
+              title: const Text('Modo oscuro'),
+              trailing: Switch(
+                value: darkMode,
+                onChanged: (valor) {
+                  setState(() => darkMode = valor);
+                  if (valor) {
+                    MyApp.of(context)?.changeTheme(ThemeMode.dark);
+                  } else {
+                    MyApp.of(context)?.changeTheme(ThemeMode.light);
+                  }
+                },
+              ),
+            ),
+          ),
 
           // Contador de días hasta borrado mensual
           Card(

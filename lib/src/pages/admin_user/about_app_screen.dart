@@ -69,7 +69,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
     const miColor = Color(0xFF8e0b13);
 
     return Scaffold(
-      backgroundColor: cremita,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: screenWidth < 800
           ? AppBar(
               backgroundColor: miColor,
@@ -118,7 +118,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                 key: itemKeys[item['palabra']],
                 margin: const EdgeInsets.only(bottom: 20),
                 child: Card(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

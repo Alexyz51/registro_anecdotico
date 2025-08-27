@@ -220,7 +220,7 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
           // Panel lateral
           Container(
             width: 250,
-            color: Colors.grey.shade100,
+            color: Theme.of(context).cardColor,
             child: Column(
               children: [
                 Container(
@@ -281,7 +281,7 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
           if (mostrarRegistrosRecientes)
             Container(
               width: 300,
-              color: Colors.grey.shade200,
+              color: Theme.of(context).cardColor,
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,12 +290,11 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "📋 Registros Recientes",
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
                         ),
                       ),
                       IconButton(
@@ -365,19 +364,31 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
                                 final grado = alumno['grado'] ?? '';
                                 final seccion = alumno['seccion'] ?? '';
 
+                                final isDark =
+                                    Theme.of(context).brightness ==
+                                    Brightness.dark;
+
                                 Color colorCard;
                                 switch (registro['color']) {
                                   case 'verde':
-                                    colorCard = Colors.green.shade100;
+                                    colorCard = isDark
+                                        ? Colors.green.shade900
+                                        : Colors.green.shade100;
                                     break;
                                   case 'amarillo':
-                                    colorCard = Colors.amber.shade100;
+                                    colorCard = isDark
+                                        ? Colors.amber.shade900
+                                        : Colors.amber.shade100;
                                     break;
                                   case 'rojo':
-                                    colorCard = Colors.red.shade100;
+                                    colorCard = isDark
+                                        ? Colors.red.shade900
+                                        : Colors.red.shade100;
                                     break;
                                   default:
-                                    colorCard = Colors.grey.shade100;
+                                    colorCard = isDark
+                                        ? const Color.fromARGB(255, 107, 49, 49)
+                                        : Colors.grey.shade100;
                                 }
 
                                 return Card(
