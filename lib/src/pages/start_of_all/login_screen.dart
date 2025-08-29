@@ -148,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.w900,
-                  color: Color.fromARGB(255, 250, 235, 231),
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 16),
@@ -158,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ), //limita el ancho en 350 px
                 child: Card(
                   // crea la tarjeta ocard
-                  color: Color.fromARGB(255, 250, 235, 231),
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -181,14 +181,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
-                              color: Color.fromARGB(255, 39, 2, 2),
+                              color: Colors.black,
                             ),
                           ),
                           const SizedBox(height: 20), //espacio
                           TextFormField(
                             controller:
                                 correo, // controller es un propiedad del widget textformfield y
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
+                              filled:
+                                  true, // Habilita el relleno para que se pueda asignar un color
+                              fillColor: Colors.white,
+
                               iconColor: Color.fromARGB(255, 39, 2, 2),
                               labelText:
                                   "Correo electrónico", //muestra correo electronico en el centro y luego en el borde
@@ -219,6 +223,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             obscureText:
                                 true, // Oculta el texto para que no se vea la contraseña (muestra puntos)
                             decoration: const InputDecoration(
+                              filled:
+                                  true, // Habilita el relleno para que se pueda asignar un color
+                              fillColor: Colors.white,
                               labelText: "Contraseña",
                               /*fillColor: Color.fromRGBO(210, 195, 172, 1),
                               filled:
@@ -256,9 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   child: const Text(
                                     "Ingresar",
-                                    style: TextStyle(
-                                      color: Color.fromARGB(255, 250, 235, 231),
-                                    ),
+                                    style: TextStyle(color: Colors.white),
                                   ),
                                 ),
                           const SizedBox(height: 12), // espacio

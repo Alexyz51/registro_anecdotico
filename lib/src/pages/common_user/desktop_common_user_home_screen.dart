@@ -223,7 +223,7 @@ class _DesktopAdminHomeUserScreenState
           // Panel lateral
           Container(
             width: 250,
-            color: Colors.grey.shade100,
+            color: Theme.of(context).cardColor,
             child: Column(
               children: [
                 Container(

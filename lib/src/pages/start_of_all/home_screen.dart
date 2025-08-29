@@ -25,7 +25,7 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
-                color: cremita,
+                color: Colors.white,
               ),
             ),
             Text(
@@ -33,7 +33,7 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
-                color: cremita,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 25),
@@ -45,7 +45,7 @@ class HomeScreen extends StatelessWidget {
                   Navigator.pushNamed(context, 'login');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 253, 232, 226),
+                  backgroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(48),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -69,7 +69,7 @@ class HomeScreen extends StatelessWidget {
                 },
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
-                  side: const BorderSide(color: cremita),
+                  side: const BorderSide(color: Colors.white),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

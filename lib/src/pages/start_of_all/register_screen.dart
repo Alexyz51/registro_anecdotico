@@ -119,14 +119,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: cremita,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 20),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 350),
                 child: Card(
-                  color: cremita,
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -146,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: rojoOscuro,
+                              color: Colors.black,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -154,6 +154,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             //en este texFormField el usurio ingresa su nombre y dsp lo mismo que en login
                             controller: nombre,
                             decoration: const InputDecoration(
+                              filled:
+                                  true, // Habilita el relleno para que se pueda asignar un color
+                              fillColor: Colors.white,
                               labelText: 'Nombre',
                               border: OutlineInputBorder(),
                             ),
@@ -165,6 +168,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             //en este texFormField el usurio ingresa su apellido y dsp lo mismo que en login
                             controller: apellido,
                             decoration: const InputDecoration(
+                              filled:
+                                  true, // Habilita el relleno para que se pueda asignar un color
+                              fillColor: Colors.white,
                               labelText: 'Apellido',
                               border: OutlineInputBorder(),
                             ),
@@ -180,6 +186,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           TextFormField(
                             controller: correo,
                             decoration: const InputDecoration(
+                              filled:
+                                  true, // Habilita el relleno para que se pueda asignar un color
+                              fillColor: Colors.white,
                               labelText: 'Correo electrónico',
                               border: OutlineInputBorder(),
                             ),
@@ -198,6 +207,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           TextFormField(
                             controller: contrasenia,
                             decoration: const InputDecoration(
+                              filled:
+                                  true, // Habilita el relleno para que se pueda asignar un color
+                              fillColor: Colors.white,
                               labelText: 'Contraseña',
                               border: OutlineInputBorder(),
                             ),
@@ -210,6 +222,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           TextFormField(
                             controller: confirmarContrasenia,
                             decoration: const InputDecoration(
+                              filled:
+                                  true, // Habilita el relleno para que se pueda asignar un color
+                              fillColor: Colors.white,
                               labelText: 'Confirmar contraseña',
                               border: OutlineInputBorder(),
                             ),
@@ -236,7 +251,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     'Registrarse',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: cremita,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
