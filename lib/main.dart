@@ -48,7 +48,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      // 🔹 Tema claro
+      // Tema claro
       theme: ThemeData(
         brightness: Brightness.light,
         primaryColor: const Color(0xFF8e0b13),
@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
 
-      // 🔹 Tema oscuro
+      // Tema oscuro
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: const Color(0xFF8e0b13),
@@ -110,6 +110,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
 
 
 /*import 'package:flutter/material.dart';

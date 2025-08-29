@@ -1,165 +1,3 @@
-/*import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'about_app_screen.dart';
-
-class ConfigScreen extends StatefulWidget {
-  const ConfigScreen({super.key});
-
-  @override
-  State<ConfigScreen> createState() => _ConfigScreenState();
-}
-
-class _ConfigScreenState extends State<ConfigScreen> {
-  String nombre = '';
-  String apellido = '';
-  String cargo = '';
-  String rolApp = '';
-
-  bool estaCargando = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _cargarDatosUsuario();
-  }
-
-  Future<void> _cargarDatosUsuario() async {
-    final usuario = FirebaseAuth.instance.currentUser;
-    if (usuario != null) {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(usuario.uid)
-          .get();
-      final data = doc.data();
-      if (data != null) {
-        setState(() {
-          nombre = data['nombre'] ?? '';
-          apellido = data['apellido'] ?? '';
-          cargo = data['rolReal'] ?? '';
-          final rol = data['rol'] ?? '';
-          rolApp = rol.isNotEmpty
-              ? rol[0].toUpperCase() + rol.substring(1)
-              : rol;
-          estaCargando = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _cerrarSesion() async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacementNamed(context, 'login');
-  }
-
-  Future<void> _eliminarCuenta() async {
-    final usuario = FirebaseAuth.instance.currentUser;
-    if (usuario != null) {
-      // Primero eliminar documentos relacionados si es necesario
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(usuario.uid)
-          .delete();
-      await usuario.delete();
-      Navigator.pushReplacementNamed(context, 'login');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const miColor = Color(0xFF8e0b13);
-
-    if (estaCargando) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    return Scaffold(
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Información del usuario
-          ListTile(
-            leading: CircleAvatar(
-              radius: 25, // tamaño del círculo
-              backgroundColor: Colors.white24, // color de fondo del círculo
-              child: const Icon(Icons.person, color: Colors.white, size: 30),
-            ),
-            tileColor: miColor,
-            title: Text(
-              '$nombre $apellido',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              '$cargo - $rolApp',
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Opciones de configuración
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Cerrar sesión'),
-              onTap: _cerrarSesion,
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.delete_forever, color: Colors.red),
-              title: const Text('Eliminar cuenta'),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                    title: const Text('Confirmar eliminación'),
-                    content: const Text(
-                      '¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancelar'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _eliminarCuenta();
-                        },
-                        child: const Text(
-                          'Eliminar',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.info, color: Colors.blue),
-              title: const Text('Acerca de la aplicación'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AboutAppScreen(),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-*/
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -183,20 +21,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
   String rolApp = '';
   bool estaCargando = true;
 
-  // -------------------- DARK MODE --------------------
-  bool darkMode = false;
+  bool darkMode = false; // Switch de modo oscuro
 
   @override
   void initState() {
     super.initState();
     _cargarDatosUsuario();
-
-    // Inicializamos el switch de tema según el estado actual de MyApp
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        darkMode = MyApp.of(context)?.themeMode == ThemeMode.dark;
-      });
-    });
   }
 
   Future<void> _cargarDatosUsuario() async {
@@ -216,9 +46,35 @@ class _ConfigScreenState extends State<ConfigScreen> {
           rolApp = rol.isNotEmpty
               ? rol[0].toUpperCase() + rol.substring(1)
               : rol;
+
+          // Cargar tema del usuario
+          final tema = data['tema'] ?? 'system';
+          if (tema == 'light') {
+            darkMode = false;
+            MyApp.of(context)?.changeTheme(ThemeMode.light);
+          } else if (tema == 'dark') {
+            darkMode = true;
+            MyApp.of(context)?.changeTheme(ThemeMode.dark);
+          } else {
+            darkMode =
+                WidgetsBinding.instance.window.platformBrightness ==
+                Brightness.dark;
+            MyApp.of(context)?.changeTheme(ThemeMode.system);
+          }
+
           estaCargando = false;
         });
       }
+    }
+  }
+
+  Future<void> _guardarTemaUsuario(bool valor) async {
+    final usuario = FirebaseAuth.instance.currentUser;
+    if (usuario != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(usuario.uid)
+          .update({'tema': valor ? 'dark' : 'light'});
     }
   }
 
@@ -239,13 +95,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
     }
   }
 
-  // -------------------- EXPORTAR CSV --------------------
   Future<String> exportRecordsToCSV() async {
     final snapshot = await FirebaseFirestore.instance
         .collection('records')
         .get();
     final registros = snapshot.docs;
-
     if (registros.isEmpty) return '';
 
     List<List<String>> csvData = [
@@ -290,7 +144,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
     return path;
   }
 
-  // -------------------- BORRAR REGISTROS --------------------
   Future<void> clearAllRecords() async {
     final snapshot = await FirebaseFirestore.instance
         .collection('records')
@@ -300,7 +153,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
     }
   }
 
-  // -------------------- CONTADOR --------------------
   int daysUntilMonthEnd() {
     final now = DateTime.now();
     final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
@@ -342,7 +194,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
           ),
           const SizedBox(height: 20),
 
-          // -------------------- SWITCH MODO OSCURO --------------------
+          // Switch Modo oscuro
           Card(
             child: ListTile(
               leading: const Icon(Icons.dark_mode, color: Colors.blueGrey),
@@ -351,11 +203,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 value: darkMode,
                 onChanged: (valor) {
                   setState(() => darkMode = valor);
-                  if (valor) {
-                    MyApp.of(context)?.changeTheme(ThemeMode.dark);
-                  } else {
-                    MyApp.of(context)?.changeTheme(ThemeMode.light);
-                  }
+                  MyApp.of(
+                    context,
+                  )?.changeTheme(valor ? ThemeMode.dark : ThemeMode.light);
+                  _guardarTemaUsuario(valor);
                 },
               ),
             ),
@@ -371,7 +222,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             ),
           ),
 
-          // Botón de exportar y borrar solo para administradores
+          // Exportar y borrar registros solo para administradores
           if (cargo.toLowerCase() == 'administrador')
             Card(
               child: ListTile(
@@ -387,7 +238,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
                       ),
                     ),
                   );
-                  setState(() {}); // refrescar contador
+                  setState(() {});
                 },
               ),
             ),
