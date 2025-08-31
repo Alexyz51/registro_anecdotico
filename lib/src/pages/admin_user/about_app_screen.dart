@@ -63,10 +63,12 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    //String hexColor = '#8e0b13';
-    const cremita = Colors.white;
     const miColor = Color(0xFF8e0b13);
+
+    final textColor = Theme.of(context).textTheme.bodyLarge!.color;
+    final subtitleColor = Theme.of(context).textTheme.bodyMedium!.color;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -88,70 +90,106 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
               automaticallyImplyLeading: true,
               elevation: 0,
             )
-          : null, // No se muestra AppBar en pantallas grandes
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: glosario.map((item) {
-                return GestureDetector(
-                  onTap: () => scrollearA(item['palabra']!),
-                  child: Text(
-                    item['palabra']!,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
-            ...glosario.map((item) {
-              return Container(
-                key: itemKeys[item['palabra']],
-                margin: const EdgeInsets.only(bottom: 20),
-                child: Card(
-                  color: Theme.of(context).cardColor,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item['palabra']!,
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          item['descripcion']!,
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          : AppBar(
+              backgroundColor: Colors.transparent,
+              title: Text(
+                "Acerca de la Aplicación",
+                style: TextStyle(
+                  color: isDark
+                      ? Colors.white
+                      : Colors.black, // blanco si dark, negro si claro
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-              );
-            }),
-          ],
-        ),
+              ),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                color: isDark
+                    ? Colors.white
+                    : Colors.black, // mismo comportamiento para icono
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              centerTitle: true,
+              elevation: 0,
+            ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Scrollbar(
+            controller: _scrollController,
+            thumbVisibility: true,
+            thickness: screenWidth > 800 ? 12 : 6,
+            radius: const Radius.circular(6),
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: glosario.map((item) {
+                        return GestureDetector(
+                          onTap: () => scrollearA(item['palabra']!),
+                          child: Text(
+                            item['palabra']!,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: textColor,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    ...glosario.map((item) {
+                      return Container(
+                        key: itemKeys[item['palabra']],
+                        margin: const EdgeInsets.only(bottom: 20),
+                        child: Card(
+                          color: Theme.of(context).cardColor,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['palabra']!,
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  item['descripcion']!,
+                                  style: TextStyle(
+                                    color: subtitleColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

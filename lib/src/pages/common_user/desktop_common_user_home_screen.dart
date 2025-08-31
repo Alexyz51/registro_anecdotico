@@ -71,101 +71,105 @@ class _DesktopAdminHomeUserScreenState
     );
   }
 
-  Widget _buildBuscarAlumnoForm() {
-    final TextEditingController _nombreCtrl = TextEditingController();
-    final TextEditingController _apellidoCtrl = TextEditingController();
-    String? _gradoSeleccionado = '7';
-    String? _seccionSeleccionada = 'A';
-    final List<String> grados = ['7', '8', '9', '1', '2', '3'];
-    final Map<String, List<String>> seccionesPorGrado = {
-      '7': ['A', 'B'],
-      '8': ['A', 'B'],
-      '9': ['A', 'B'],
-      '1': ['Informática', 'Ciencias Básicas'],
-      '2': ['Informática', 'Ciencias Básicas'],
-      '3': ['Informática', 'Ciencias Básicas'],
-    };
+  // --- VARIABLES DE ESTADO PARA BUSCAR ALUMNO ---
+  final TextEditingController _nombreCtrl = TextEditingController();
+  final TextEditingController _apellidoCtrl = TextEditingController();
+  String? _gradoSeleccionado = '7';
+  String? _seccionSeleccionada = 'A';
 
-    String normalizar(String texto) {
-      texto = texto.toLowerCase();
-      texto = texto
-          .replaceAll('á', 'a')
-          .replaceAll('é', 'e')
-          .replaceAll('í', 'i')
-          .replaceAll('ó', 'o')
-          .replaceAll('ú', 'u')
-          .replaceAll('ñ', 'n');
-      return texto.trim();
+  final List<String> grados = ['7', '8', '9', '1', '2', '3'];
+  final Map<String, List<String>> seccionesPorGrado = {
+    '7': ['A', 'B'],
+    '8': ['A', 'B'],
+    '9': ['A', 'B'],
+    '1': ['Informática', 'Ciencias Básicas'],
+    '2': ['Informática', 'Ciencias Básicas'],
+    '3': ['Informática', 'Ciencias Básicas'],
+  };
+
+  // --- FUNCIONES ---
+  String normalizar(String texto) {
+    texto = texto.toLowerCase();
+    texto = texto
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n');
+    return texto.trim();
+  }
+
+  Future<void> _buscarAlumno() async {
+    final nombreBusq = normalizar(_nombreCtrl.text);
+    final apellidoBusq = normalizar(_apellidoCtrl.text);
+    final gradoBusq = _gradoSeleccionado;
+    final seccionBusq = normalizar(_seccionSeleccionada ?? '');
+
+    if (nombreBusq.isEmpty ||
+        apellidoBusq.isEmpty ||
+        gradoBusq == null ||
+        seccionBusq.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Complete todos los campos")),
+      );
+      return;
     }
 
-    Future<void> _buscarAlumno() async {
-      final nombreBusq = normalizar(_nombreCtrl.text);
-      final apellidoBusq = normalizar(_apellidoCtrl.text);
-      final gradoBusq = _gradoSeleccionado;
-      final seccionBusq = normalizar(_seccionSeleccionada ?? '');
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('students')
+          .get();
 
-      if (nombreBusq.isEmpty ||
-          apellidoBusq.isEmpty ||
-          gradoBusq == null ||
-          seccionBusq.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Complete todos los campos")),
+      final listaFiltrada = snapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            final nombreDb = normalizar(data['nombre'] ?? '');
+            final apellidoDb = normalizar(data['apellido'] ?? '');
+            final gradoDb = (data['grado'] ?? '').toString().trim();
+            final seccionDb = normalizar(data['seccion'] ?? '');
+
+            if (nombreDb == nombreBusq &&
+                apellidoDb == apellidoBusq &&
+                gradoDb == gradoBusq &&
+                seccionDb == seccionBusq) {
+              final alumnoConId = Map<String, dynamic>.from(data);
+              alumnoConId['docId'] = doc.id;
+              return alumnoConId;
+            }
+            return null;
+          })
+          .where((alumno) => alumno != null)
+          .cast<Map<String, dynamic>>()
+          .toList();
+
+      if (listaFiltrada.isNotEmpty) {
+        final estudiante = listaFiltrada.first;
+
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (_) => RegistrarConductaDialog(
+            alumno: estudiante,
+            grado: estudiante['grado'].toString(),
+            seccion: estudiante['seccion'],
+            nivel: estudiante['nivel'] ?? 'Nivel desconocido',
+          ),
         );
-        return;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No se encontró al alumno")),
+        );
       }
-
-      try {
-        final snapshot = await FirebaseFirestore.instance
-            .collection('students')
-            .get();
-
-        final listaFiltrada = snapshot.docs
-            .map((doc) {
-              final data = doc.data();
-              final nombreDb = normalizar(data['nombre'] ?? '');
-              final apellidoDb = normalizar(data['apellido'] ?? '');
-              final gradoDb = (data['grado'] ?? '').toString().trim();
-              final seccionDb = normalizar(data['seccion'] ?? '');
-
-              if (nombreDb == nombreBusq &&
-                  apellidoDb == apellidoBusq &&
-                  gradoDb == gradoBusq &&
-                  seccionDb == seccionBusq) {
-                final alumnoConId = Map<String, dynamic>.from(data);
-                alumnoConId['docId'] = doc.id;
-                return alumnoConId;
-              }
-              return null;
-            })
-            .where((alumno) => alumno != null)
-            .cast<Map<String, dynamic>>()
-            .toList();
-
-        if (listaFiltrada.isNotEmpty) {
-          final estudiante = listaFiltrada.first;
-
-          showDialog(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) => RegistrarConductaDialog(
-              alumno: estudiante,
-              grado: estudiante['grado'].toString(),
-              seccion: estudiante['seccion'],
-              nivel: estudiante['nivel'] ?? 'Nivel desconocido',
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("No se encontró al alumno")),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error al buscar alumno: $e")));
-      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error al buscar alumno: $e")));
     }
+  }
 
+  // --- WIDGET DEL FORMULARIO ---
+  Widget _buildBuscarAlumnoForm() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -187,6 +191,7 @@ class _DesktopAdminHomeUserScreenState
           onChanged: (value) {
             setState(() {
               _gradoSeleccionado = value;
+              // Actualiza automáticamente la sección según el grado seleccionado
               _seccionSeleccionada = seccionesPorGrado[value!]!.first;
             });
           },

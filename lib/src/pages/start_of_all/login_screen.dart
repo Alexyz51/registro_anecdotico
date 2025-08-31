@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         leading: BackButton(
-          color: Color.fromARGB(255, 39, 2, 2),
+          color: Colors.white,
           onPressed: () => Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -181,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
-                              color: Colors.black,
+                              color: const Color.fromARGB(255, 39, 2, 2),
                             ),
                           ),
                           const SizedBox(height: 20), //espacio
@@ -189,15 +189,60 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller:
                                 correo, // controller es un propiedad del widget textformfield y
                             decoration: InputDecoration(
-                              filled:
-                                  true, // Habilita el relleno para que se pueda asignar un color
-                              fillColor: Colors.white,
+                              filled: true,
+                              fillColor: Colors.white, // fondo blanco
+                              labelText: "Correo electrónico",
+                              labelStyle: TextStyle(
+                                color:
+                                    Colors.grey[400], // etiqueta gris clarito
+                              ),
+                              iconColor: const Color.fromARGB(255, 39, 2, 2),
 
-                              iconColor: Color.fromARGB(255, 39, 2, 2),
-                              labelText:
-                                  "Correo electrónico", //muestra correo electronico en el centro y luego en el borde
-                              border: OutlineInputBorder(),
+                              // Borde normal (no enfocado)
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors
+                                      .grey[400]!, // un poquito más oscuro que antes
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  4,
+                                ), // radio consistente
+                              ),
+
+                              // Borde enfocado
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors
+                                      .grey[500]!, // borde más oscuro cuando se toca
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  4,
+                                ), // mismo radio
+                              ),
+
+                              // Borde de error
+                              errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                             ),
+                            style: const TextStyle(
+                              color: Colors
+                                  .black87, // texto ingresado negro legible
+                            ),
+
                             validator: (valor) {
                               // esta propidad llama a formKey.currentState!.validate() y verifica eñ valor u con las propiedade que tiene confiamos que no esta vacio
                               if (valor == null || valor.isEmpty) {
@@ -222,23 +267,57 @@ class _LoginScreenState extends State<LoginScreen> {
                                 contrasenia, // Controla el texto que el usuario ingresa (la contraseña)
                             obscureText:
                                 true, // Oculta el texto para que no se vea la contraseña (muestra puntos)
-                            decoration: const InputDecoration(
-                              filled:
-                                  true, // Habilita el relleno para que se pueda asignar un color
-                              fillColor: Colors.white,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white, // fondo blanco
                               labelText: "Contraseña",
-                              /*fillColor: Color.fromRGBO(210, 195, 172, 1),
-                              filled:
-                                  true, // Texto que aparece como etiqueta dentro del campo*/
-                              border: OutlineInputBorder(
-                                /*borderRadius: BorderRadius.all(
-                                  Radius.circular(0.0),
-                                ),
+                              labelStyle: TextStyle(
+                                color:
+                                    Colors.grey[400], // etiqueta gris clarito
+                              ),
+                              iconColor: const Color.fromARGB(255, 39, 2, 2),
+
+                              // Borde normal (no enfocado)
+                              enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
+                                  color: Colors
+                                      .grey[400]!, // un poquito más oscuro que antes
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  4,
+                                ), // radio consistente
+                              ),
+
+                              // Borde enfocado
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors
+                                      .grey[500]!, // borde más oscuro cuando se toca
                                   width: 2,
-                                  color: Colors.blue,
-                                ),*/
-                              ), // Bordes visibles alrededor del campo
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+
+                              // Borde de error
+                              errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            style: const TextStyle(
+                              color: Colors
+                                  .black87, // texto ingresado negro legible
                             ),
                             validator: (valor) {
                               // Función que valida el texto ingresado

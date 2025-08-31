@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 
 // Pantallas importadas
@@ -19,6 +20,7 @@ import 'package:registro_anecdotico/src/pages/admin_user/historial_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MyApp());
 }
 
@@ -37,10 +39,42 @@ class _MyAppState extends State<MyApp> {
 
   ThemeMode get themeMode => _themeMode;
 
-  void changeTheme(ThemeMode newTheme) {
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeFromPrefs();
+  }
+
+  // 🔑 Cargar tema desde SharedPreferences
+  Future<void> _loadThemeFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTheme = prefs.getString('themeMode') ?? 'system';
+
+    setState(() {
+      switch (savedTheme) {
+        case 'light':
+          _themeMode = ThemeMode.light;
+          break;
+        case 'dark':
+          _themeMode = ThemeMode.dark;
+          break;
+        default:
+          _themeMode = ThemeMode.system;
+      }
+    });
+  }
+
+  // 🔑 Cambiar tema y guardar en SharedPreferences
+  void changeTheme(ThemeMode newTheme) async {
     setState(() {
       _themeMode = newTheme;
     });
+
+    final prefs = await SharedPreferences.getInstance();
+    String themeString = 'system';
+    if (newTheme == ThemeMode.light) themeString = 'light';
+    if (newTheme == ThemeMode.dark) themeString = 'dark';
+    await prefs.setString('themeMode', themeString);
   }
 
   @override
@@ -110,6 +144,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
 
 
 

@@ -14,8 +14,8 @@ class MobileAdminHomeUserScreen extends StatefulWidget {
 }
 
 class _MobileAdminHomeUserScreenState extends State<MobileAdminHomeUserScreen> {
-  String? _itemSeleccionado;
-  bool _cargando = true;
+  //String? _itemSeleccionado;
+  //bool _cargando = true;
   String? _cargoSeleccionado;
 
   final List<String> cargos = [
@@ -79,7 +79,7 @@ class _MobileAdminHomeUserScreenState extends State<MobileAdminHomeUserScreen> {
       }
     }
     setState(() {
-      _cargando = false;
+      //_cargando = false;
     });
   }
 
@@ -246,7 +246,7 @@ class _MobileAdminHomeUserScreenState extends State<MobileAdminHomeUserScreen> {
   @override
   Widget build(BuildContext context) {
     //const cremita = const Color(0xFFFFFDD0);
-    const cremita = Colors.white;
+    //const cremita = Colors.white;
     const miColor = Color(0xFF8e0b13);
 
     return Scaffold(
@@ -298,7 +298,7 @@ class _MobileAdminHomeUserScreenState extends State<MobileAdminHomeUserScreen> {
   }
 
   Widget _iconoPagina(IconData icono, int index) {
-    const miColor = Color(0xFF8e0b13);
+    //const miColor = Color(0xFF8e0b13);
     return IconButton(
       icon: Icon(
         icono,
@@ -487,7 +487,7 @@ class _MobileAdminHomeUserScreenState extends State<MobileAdminHomeUserScreen> {
   }
 
   Widget _paginaConfiguracion() {
-    const miColor = Color(0xFF8e0b13);
+    //const miColor = Color(0xFF8e0b13);
 
     return ListView(
       padding: const EdgeInsets.all(16),
