@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'config_screen.dart';
-import '../widgets/breadcrumb_navigation.dart';
+//import 'config_screen.dart';
 
 class AboutAppScreen extends StatefulWidget {
   const AboutAppScreen({super.key});
@@ -14,29 +13,57 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
 
   final List<Map<String, String>> glosario = [
     {
-      'palabra': 'Privacidad',
+      'palabra': 'Introducción',
       'descripcion':
-          'La privacidad se refiere a la protección de los datos personales del usuario...',
+          'Esta aplicación permite registrar conductas de los alumnos de manera digital, organizando la información por nivel, grado y sección.\n\n'
+          'Permite asignar colores a las conductas, agregar comentarios y enviar notificaciones a los padres (solo si su correo fue previamente regirtrado).',
     },
     {
-      'palabra': 'Seguridad',
+      'palabra': 'Privacidad y seguridad',
       'descripcion':
-          'La seguridad implica la protección contra accesos no autorizados...',
+          'Los datos de profesores se almacenan en Firebase, con acceso seguro mediante autenticación.\n\n'
+          'Cada usuario tiene un rol (profesor o administrador) que determina lo que puede ver o hacer.\n\n'
+          'Las contraseñas se almacenan de manera segura (mrdiante Firebase Auth).',
     },
     {
-      'palabra': 'Licencia',
+      'palabra': 'Registro de usuario',
       'descripcion':
-          'Una licencia define los términos legales para usar esta aplicación...',
+          'Abrir la aplicación y acceder a la pantalla Registro.\n\n'
+          'Completar los campos obligatorios: Nombre, Apellido, Email y Contraseña.\n\n'
+          'Seleccionar rol (por defecto: usuario) y presionar Registrarse.\n\n'
+          'Tras el registro, se puede iniciar sesión con email y contraseña.',
     },
     {
-      'palabra': 'Contacto',
+      'palabra': 'Inicio de sesión',
       'descripcion':
-          'Podés contactarnos a través del correo institucional o mediante el sitio web oficial.',
+          'Ingresar email y contraseña en la pantalla de inicio de sesión.\n\n'
+          'Presionar Iniciar sesión para acceder al panel correspondiente según el rol.',
     },
     {
-      'palabra': 'Otra Palabra',
+      'palabra': 'Registro de conductas',
       'descripcion':
-          'Para hacer esto solo es copiar y pegar cambiando el texto y se genera automáticamente el item.',
+          'Buscar al alumno en la a traves del cudro de Busqueda de Alumnos en la pantalla de inicio.\n\n'
+          'Elegir un color de clasificación (verde, amarillo o rojo).\n\n'
+          'Marcar las conductas frecuentes o agregar otra en Otros.\n\n'
+          '(Opcional) Escribir un comentario o reflexión.\n\n'
+          'Presionar Guardar para registrar la conducta. Un mensaje confirmará que se guardó correctamente.',
+    },
+    {
+      'palabra': 'Envío de notificaciones',
+      'descripcion':
+          'Si está esta registrado (el correo del padre), la aplicación puede enviar un correo al padre del alumno con los detalles del registro automáticamente al guardar la conducta.',
+    },
+    {
+      'palabra': 'Cierre de sesión',
+      'descripcion':
+          'Usar el botón de Cerrar sesión en el menú principal para proteger la cuenta en dispositivos compartidos.',
+    },
+    {
+      'palabra': 'Recomendaciones',
+      'descripcion':
+          'Mantener la contraseña segura y no compartirla.\n\n'
+          'Si se desea enviar notificaciones al los padres el correo debe estar registrado.\n\n'
+          'Registrar siempre la conducta correcta y con honestidad para llevar un historial confiable.',
     },
   ];
 

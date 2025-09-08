@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ListaAlumnosScreen extends StatefulWidget {
   final String grado;
@@ -21,6 +23,57 @@ class ListaAlumnosScreen extends StatefulWidget {
 }
 
 class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
+  String capitalizar(String texto) {
+    if (texto.isEmpty) return texto;
+    return texto[0].toUpperCase() + texto.substring(1);
+  }
+
+  Future<void> enviarCorreoAlPadre({
+    required String correoPadre,
+    required Map<String, dynamic> registro,
+    required String nombreAlumno,
+    required String apellidoAlumno,
+  }) async {
+    const serviceId = 'service_8ynxp6q';
+    const templateId = 'template_fy8y6y7';
+    const userId = 'cfUozddr4CSpfzsaC';
+
+    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
+
+    final Map<String, dynamic> templateParams = {
+      'email': correoPadre,
+      'nombre': capitalizar(nombreAlumno),
+      'apellido': capitalizar(apellidoAlumno),
+      'grado': '${registro['grado'].toString()}°',
+      'seccion': capitalizar(registro['seccion'].toString()),
+      'nivel': capitalizar(registro['nivel'].toString()),
+      'color': capitalizar(registro['color'].toString()),
+      'descripcion': registro['descripcion'],
+      'comentario': capitalizar(registro['comentario'] ?? ''),
+      'registrado_por': capitalizar(registro['registrado_por'].toString()),
+    };
+
+    final response = await http.post(
+      url,
+      headers: {
+        'origin': 'http://localhost',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'service_id': serviceId,
+        'template_id': templateId,
+        'user_id': userId,
+        'template_params': templateParams,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Correo enviado exitosamente via EmailJS');
+    } else {
+      print('Error al enviar correo via EmailJS: ${response.body}');
+    }
+  }
+
   final _formKey = GlobalKey<FormState>();
   String? colorSeleccionado;
   final TextEditingController comentarioController = TextEditingController();
@@ -127,6 +180,33 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
       ),
     );
 
+    // --- Obtener correo del padre desde Firestore ---
+    final docAlumno = await FirebaseFirestore.instance
+        .collection('students')
+        .doc(widget.alumno['docId'])
+        .get();
+
+    final correoPadre = docAlumno.data()?['correo_padre'] ?? '';
+
+    if (correoPadre.isNotEmpty) {
+      // Mostrar SnackBar mientras se envía el correo
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enviando correo al padre...')),
+      );
+
+      // Llamada a la función de envío
+      await enviarCorreoAlPadre(
+        correoPadre: correoPadre,
+        registro: registro,
+        nombreAlumno: widget.alumno['nombre'],
+        apellidoAlumno: widget.alumno['apellido'],
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Correo enviado al padre con éxito')),
+      );
+    }
+
     Navigator.pop(context); // Regresa a la pantalla anterior
   }
 
@@ -190,7 +270,7 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${widget.alumno['nombre']} ${widget.alumno['apellido']} \n${widget.grado}° Grado - Sección ${widget.seccion.toUpperCase()}',
+                '${widget.alumno['nombre']} ${widget.alumno['apellido']} \n${widget.grado}° Grado - Sección ${widget.seccion[0].toUpperCase() + widget.seccion.substring(1)}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -272,7 +352,7 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Ingrese sugerencia o reflexión';
+                    return null; // Ya no valida nada
                   }
                   return null;
                 },

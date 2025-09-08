@@ -7,6 +7,8 @@ import 'package:registro_anecdotico/src/pages/admin_user/historial_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/records_summary_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/edit_list_screen.dart';
 import 'package:registro_anecdotico/src/pages/admin_user/users_list_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class DesktopAdminHomeUserScreen extends StatefulWidget {
   const DesktopAdminHomeUserScreen({super.key});
@@ -414,6 +416,86 @@ class RegistrarConductaDialog extends StatefulWidget {
 }
 
 class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
+  String capitalizar(String texto) {
+    if (texto.isEmpty) return texto;
+    return texto[0].toUpperCase() + texto.substring(1);
+  }
+
+  Future<void> enviarCorreoAlPadre({
+    required String correoPadre,
+    required Map<String, dynamic> registro,
+    required String nombreAlumno,
+    required String apellidoAlumno,
+  }) async {
+    //const String usuario = "adj37007@gmail.com"; // tu correo
+    //const String password = "anfm geng bscp erto"; // 16 dígitos de Google
+    //const String password =
+    //    "anfmgengbscperto"; // 16 dígitos de Google sin espacios
+
+    /*final smtpServer = gmail(usuario, password);
+
+    final message = Message()
+      ..from = Address(usuario, "Registro Anecdótico")
+      ..recipients.add(correoPadre)
+      ..subject = "Nuevo registro de $nombreAlumno $apellidoAlumno"
+      ..html =
+          """
+  <h2>📋 Registro de Conducta</h2>
+  <p><b>Alumno:</b> $nombreAlumno $apellidoAlumno</p>
+  <p><b>Grado:</b> ${registro['grado']} - Sección: ${registro['seccion']}</p>
+  <p><b>Clasificación:</b> ${registro['color']}</p>
+  <p><b>Descripción:</b><br>${registro['descripcion'].toString().replaceAll("\n", "<br>")}</p>
+  <p><b>Comentario:</b> ${registro['comentario'] ?? ''}</p>
+  <p><i>Registrado por: ${registro['registrado_por']}</i></p>
+""";
+
+    try {
+      final sendReport = await send(message, smtpServer);
+      print("Correo enviado: $sendReport");
+    } catch (e) {
+      print("Error al enviar correo: $e");
+    }*/
+
+    const serviceId = 'service_8ynxp6q';
+    const templateId = 'template_fy8y6y7';
+    const userId = 'cfUozddr4CSpfzsaC';
+
+    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
+
+    final Map<String, dynamic> templateParams = {
+      'email': correoPadre, // tu correo
+      'nombre': capitalizar(nombreAlumno),
+      'apellido': capitalizar(apellidoAlumno),
+      'grado': '${registro['grado'].toString()}°',
+      'seccion': capitalizar(registro['seccion'].toString()),
+      'nivel': capitalizar(registro['nivel'].toString()),
+      'color': capitalizar(registro['color'].toString()),
+      'descripcion': registro['descripcion'], // no se capitaliza
+      'comentario': capitalizar(registro['comentario'] ?? ''),
+      'registrado_por': capitalizar(registro['registrado_por'].toString()),
+    };
+
+    final response = await http.post(
+      url,
+      headers: {
+        'origin': 'http://localhost',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'service_id': serviceId,
+        'template_id': templateId,
+        'user_id': userId,
+        'template_params': templateParams,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Correo enviado exitosamente via EmailJS');
+    } else {
+      print('Error al enviar correo via EmailJS: ${response.body}');
+    }
+  }
+
   final _formKey = GlobalKey<FormState>();
   String? colorSeleccionado;
   final TextEditingController comentarioController = TextEditingController();
@@ -510,7 +592,20 @@ class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
       'userId': uidUsuario,
     };
 
+    // Guardar registro
     await FirebaseFirestore.instance.collection('records').add(registro);
+
+    // --- ENVÍO DE CORREO ---
+    if (widget.alumno.containsKey('correo_padre') &&
+        (widget.alumno['correo_padre'] as String).isNotEmpty) {
+      await enviarCorreoAlPadre(
+        correoPadre: widget.alumno['correo_padre'],
+        registro: registro,
+        nombreAlumno: widget.alumno['nombre'] ?? '',
+        apellidoAlumno: widget.alumno['apellido'] ?? '',
+      );
+    }
+
     Navigator.pop(context);
   }
 
