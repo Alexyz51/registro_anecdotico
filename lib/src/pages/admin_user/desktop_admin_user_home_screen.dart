@@ -7,8 +7,11 @@ import 'package:registro_anecdotico/src/pages/admin_user/lista_alumnos_screen.da
 import 'records_summary_screen.dart';
 import 'users_list_screen.dart';
 import 'edit_list_screen.dart';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server/gmail.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+//import 'package:mailer/mailer.dart';
+//import 'package:mailer/smtp_server/gmail.dart';
 
 class DesktopAdminHomeScreen extends StatefulWidget {
   const DesktopAdminHomeScreen({super.key});
@@ -454,18 +457,23 @@ class RegistrarConductaDialog extends StatefulWidget {
 }
 
 class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
+  String capitalizar(String texto) {
+    if (texto.isEmpty) return texto;
+    return texto[0].toUpperCase() + texto.substring(1);
+  }
+
   Future<void> enviarCorreoAlPadre({
     required String correoPadre,
     required Map<String, dynamic> registro,
     required String nombreAlumno,
     required String apellidoAlumno,
   }) async {
-    const String usuario = "adj37007@gmail.com"; // tu correo
+    //const String usuario = "adj37007@gmail.com"; // tu correo
     //const String password = "anfm geng bscp erto"; // 16 dígitos de Google
-    const String password =
-        "anfmgengbscperto"; // 16 dígitos de Google sin espacios
+    //const String password =
+    //    "anfmgengbscperto"; // 16 dígitos de Google sin espacios
 
-    final smtpServer = gmail(usuario, password);
+    /*final smtpServer = gmail(usuario, password);
 
     final message = Message()
       ..from = Address(usuario, "Registro Anecdótico")
@@ -487,6 +495,45 @@ class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
       print("Correo enviado: $sendReport");
     } catch (e) {
       print("Error al enviar correo: $e");
+    }*/
+
+    const serviceId = 'service_8ynxp6q';
+    const templateId = 'template_fy8y6y7';
+    const userId = 'cfUozddr4CSpfzsaC';
+
+    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
+
+    final Map<String, dynamic> templateParams = {
+      'email': correoPadre, // tu correo
+      'nombre': capitalizar(nombreAlumno),
+      'apellido': capitalizar(apellidoAlumno),
+      'grado': '${registro['grado'].toString()}°',
+      'seccion': capitalizar(registro['seccion'].toString()),
+      'nivel': capitalizar(registro['nivel'].toString()),
+      'color': capitalizar(registro['color'].toString()),
+      'descripcion': registro['descripcion'], // no se capitaliza
+      'comentario': capitalizar(registro['comentario'] ?? ''),
+      'registrado_por': capitalizar(registro['registrado_por'].toString()),
+    };
+
+    final response = await http.post(
+      url,
+      headers: {
+        'origin': 'http://localhost',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'service_id': serviceId,
+        'template_id': templateId,
+        'user_id': userId,
+        'template_params': templateParams,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Correo enviado exitosamente via EmailJS');
+    } else {
+      print('Error al enviar correo via EmailJS: ${response.body}');
     }
   }
 
