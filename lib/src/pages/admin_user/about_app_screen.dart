@@ -178,6 +178,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                       return Container(
                         key: itemKeys[item['palabra']],
                         margin: const EdgeInsets.only(bottom: 20),
+                        width: double.infinity,
                         child: Card(
                           color: Theme.of(context).cardColor,
                           elevation: 2,
