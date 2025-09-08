@@ -113,7 +113,9 @@ class _UserListScreenState extends State<UserListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Correo: $correo'),
-                          Text('$rolReal'),
+                          Text(
+                            'Rol: ${rol[0].toUpperCase() + rol.substring(1)}',
+                          ),
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerRight,
@@ -122,9 +124,12 @@ class _UserListScreenState extends State<UserListScreen> {
                                 Icons.delete,
                                 color: Colors.white,
                               ),
-                              label: const Text('Eliminar'),
+                              label: const Text(
+                                'Eliminar',
+                                style: TextStyle(color: Colors.white),
+                              ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
+                                backgroundColor: miColor,
                               ),
                               onPressed: () async {
                                 final confirmar = await showDialog<bool>(

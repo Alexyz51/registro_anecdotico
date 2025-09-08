@@ -236,8 +236,12 @@ class _DesktopAdminHomeUserScreenState
                   height: 80,
                   padding: const EdgeInsets.all(16),
                   child: Row(
-                    children: const [
-                      Icon(Icons.school, color: Colors.white, size: 32),
+                    children: [
+                      Image.asset(
+                        "assets/book.png", // cambia por la ruta de tu imagen
+                        width: 32,
+                        height: 32,
+                      ),
                       SizedBox(width: 12),
                       Text(
                         "Registro Anecdótico",

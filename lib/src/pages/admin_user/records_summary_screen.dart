@@ -323,7 +323,7 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: cantidad > 0
-                                ? Colors.red.shade100
+                                ? const Color.fromARGB(33, 158, 28, 37)
                                 : Colors.grey.shade300,
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -332,7 +332,7 @@ class _RecordsSummaryScreenState extends State<RecordsSummaryScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: cantidad > 0
-                                  ? Colors.red.shade900
+                                  ? miColor
                                   : Colors.grey.shade600,
                             ),
                           ),

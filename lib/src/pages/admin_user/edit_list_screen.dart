@@ -481,8 +481,10 @@ class _EditListScreenState extends State<EditListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Importar alumnos desde CSV'),
-        content: SizedBox(
-          width: double.maxFinite,
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 400, // ancho máximo deseado
+          ),
           child: CsvImportWidget(
             onImportCompleted: () {
               Navigator.pop(context);
@@ -621,10 +623,7 @@ class _EditListScreenState extends State<EditListScreen> {
                                 '${alumno['numero_lista']}  ${alumno['nombre']} ${alumno['apellido']}',
                               ),
                               trailing: IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                ),
+                                icon: const Icon(Icons.delete, color: miColor),
                                 onPressed: () => _deleteAlumno(alumno['docId']),
                               ),
                             );
@@ -785,6 +784,7 @@ class _CsvImportWidgetState extends State<CsvImportWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (_isLoading)
           const CircularProgressIndicator() // mostrar spinner de carga

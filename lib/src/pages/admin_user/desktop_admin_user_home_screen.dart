@@ -7,6 +7,8 @@ import 'package:registro_anecdotico/src/pages/admin_user/lista_alumnos_screen.da
 import 'records_summary_screen.dart';
 import 'users_list_screen.dart';
 import 'edit_list_screen.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
 
 class DesktopAdminHomeScreen extends StatefulWidget {
   const DesktopAdminHomeScreen({super.key});
@@ -233,8 +235,12 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
                   height: 80,
                   padding: const EdgeInsets.all(16),
                   child: Row(
-                    children: const [
-                      Icon(Icons.school, color: Colors.white, size: 32),
+                    children: [
+                      Image.asset(
+                        "assets/book.png", // cambia por la ruta de tu imagen
+                        width: 32,
+                        height: 32,
+                      ),
                       SizedBox(width: 12),
                       Text(
                         "Registro Anecdótico",
@@ -448,6 +454,42 @@ class RegistrarConductaDialog extends StatefulWidget {
 }
 
 class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
+  Future<void> enviarCorreoAlPadre({
+    required String correoPadre,
+    required Map<String, dynamic> registro,
+    required String nombreAlumno,
+    required String apellidoAlumno,
+  }) async {
+    const String usuario = "adj37007@gmail.com"; // tu correo
+    //const String password = "anfm geng bscp erto"; // 16 dígitos de Google
+    const String password =
+        "anfmgengbscperto"; // 16 dígitos de Google sin espacios
+
+    final smtpServer = gmail(usuario, password);
+
+    final message = Message()
+      ..from = Address(usuario, "Registro Anecdótico")
+      ..recipients.add(correoPadre)
+      ..subject = "Nuevo registro de $nombreAlumno $apellidoAlumno"
+      ..html =
+          """
+  <h2>📋 Registro de Conducta</h2>
+  <p><b>Alumno:</b> $nombreAlumno $apellidoAlumno</p>
+  <p><b>Grado:</b> ${registro['grado']} - Sección: ${registro['seccion']}</p>
+  <p><b>Clasificación:</b> ${registro['color']}</p>
+  <p><b>Descripción:</b><br>${registro['descripcion'].toString().replaceAll("\n", "<br>")}</p>
+  <p><b>Comentario:</b> ${registro['comentario'] ?? ''}</p>
+  <p><i>Registrado por: ${registro['registrado_por']}</i></p>
+""";
+
+    try {
+      final sendReport = await send(message, smtpServer);
+      print("Correo enviado: $sendReport");
+    } catch (e) {
+      print("Error al enviar correo: $e");
+    }
+  }
+
   final _formKey = GlobalKey<FormState>();
   String? colorSeleccionado;
   final TextEditingController comentarioController = TextEditingController();
@@ -544,7 +586,21 @@ class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
       'userId': uidUsuario,
     };
 
+    // Guardar registro en Firestore
     await FirebaseFirestore.instance.collection('records').add(registro);
+
+    // Enviar correo al padre si existe el campo "'correo_padre'"
+    if (widget.alumno.containsKey('correo_padre') &&
+        (widget.alumno['correo_padre'] as String).isNotEmpty) {
+      final correoPadre = widget.alumno['correo_padre'] as String;
+      await enviarCorreoAlPadre(
+        correoPadre: correoPadre,
+        registro: registro,
+        nombreAlumno: widget.alumno['nombre'] ?? '',
+        apellidoAlumno: widget.alumno['apellido'] ?? '',
+      );
+    }
+
     Navigator.pop(context);
   }
 

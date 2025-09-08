@@ -117,7 +117,7 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
       'userId': uidUsuario,
     };
 
-    await FirebaseFirestore.instance.collection('conductas').add(registro);
+    await FirebaseFirestore.instance.collection('records').add(registro);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
