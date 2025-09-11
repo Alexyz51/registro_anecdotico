@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 
 // Pantallas importadas
 import 'package:registro_anecdotico/src/pages/splash_screen.dart';
@@ -22,6 +23,16 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const MyApp());
+
+  // Configuración ventana Windows
+  doWhenWindowReady(() {
+    final win = appWindow;
+    win.minSize = const Size(600, 400);
+    win.size = const Size(900, 600);
+    win.alignment = Alignment.center;
+    win.title = "Registro Anecdótico"; // 👈 cambia el texto aquí
+    win.show();
+  });
 }
 
 class MyApp extends StatefulWidget {
