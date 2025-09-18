@@ -82,6 +82,7 @@ flutter:
   # assets:
   assets:
     - assets/book.png
+    - assets/escudo.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 flutter_icons:
