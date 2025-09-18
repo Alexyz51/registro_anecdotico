@@ -248,72 +248,78 @@ class _MobileAdminHomeScreenState extends State<MobileAdminHomeScreen> {
     //const cremita = Colors.white;
     const miColor = Color(0xFF8e0b13);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    return WillPopScope(
+      onWillPop: () async {
+        // Devuelve false para bloquear el botón "atrás"
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
-      appBar: AppBar(
-        backgroundColor: miColor,
-        title: const Text(
-          "Registro Anecdótico",
-          style: TextStyle(color: Colors.white),
-        ),
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (value) async {
-              if (value == 'reportes') {
-                Navigator.pushNamed(context, 'records_summary');
-              } else if (value == 'usuarios') {
-                Navigator.pushNamed(context, 'users_list');
-              } else if (value == 'lista') {
-                Navigator.pushNamed(context, 'edit_list');
-              }
-            },
-            itemBuilder: (context) {
-              return const [
-                PopupMenuItem(value: 'lista', child: Text("Lista")),
-                PopupMenuItem(value: 'reportes', child: Text("Reportes")),
-                PopupMenuItem(value: 'usuarios', child: Text("Usuarios")),
-              ];
-            },
+        appBar: AppBar(
+          backgroundColor: miColor,
+          title: const Text(
+            "Registro Anecdótico",
+            style: TextStyle(color: Colors.white),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Fila de iconos debajo del AppBar
-          Container(
-            color: miColor,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _iconoPagina(Icons.home, 0),
-                _iconoPagina(Icons.history, 1),
-                _iconoPagina(Icons.settings, 2),
-              ],
-            ),
-          ),
-
-          // PageView con swipe horizontal
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
+          automaticallyImplyLeading: false,
+          centerTitle: true,
+          actions: [
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.white),
+              onSelected: (value) async {
+                if (value == 'reportes') {
+                  Navigator.pushNamed(context, 'records_summary');
+                } else if (value == 'usuarios') {
+                  Navigator.pushNamed(context, 'users_list');
+                } else if (value == 'lista') {
+                  Navigator.pushNamed(context, 'edit_list');
+                }
               },
-              children: [
-                _paginaInicio(),
-                const HistorialScreen(), // la página de historial dentro del PageView
-                const ConfigScreen(),
-              ],
+              itemBuilder: (context) {
+                return const [
+                  PopupMenuItem(value: 'lista', child: Text("Lista")),
+                  PopupMenuItem(value: 'reportes', child: Text("Reportes")),
+                  PopupMenuItem(value: 'usuarios', child: Text("Usuarios")),
+                ];
+              },
             ),
-          ),
-        ],
+          ],
+        ),
+        body: Column(
+          children: [
+            // Fila de iconos debajo del AppBar
+            Container(
+              color: miColor,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _iconoPagina(Icons.home, 0),
+                  _iconoPagina(Icons.history, 1),
+                  _iconoPagina(Icons.settings, 2),
+                ],
+              ),
+            ),
+
+            // PageView con swipe horizontal
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                children: [
+                  _paginaInicio(),
+                  const HistorialScreen(), // la página de historial dentro del PageView
+                  const ConfigScreen(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -22,6 +22,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _cargaDeDatos = false; // carga de datos empieza en false
 
+  bool _mostrarContrasenia = false;
+  bool _mostrarConfirmarContrasenia = false;
+
   Future<void> registrarUsuario() async {
     //depues de completar una vez que se toca regritrase empieza esta funcion
     if (_claveDeFormulario.currentState!.validate()) {
@@ -348,39 +351,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             controller: contrasenia,
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: Colors.white, // fondo blanco
+                              fillColor: Colors.white,
                               labelText: 'Contraseña',
-                              labelStyle: TextStyle(
-                                color: Colors
-                                    .grey[400], // etiqueta gris clarito cuando no está enfocado
+                              labelStyle: TextStyle(color: Colors.grey[400]),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _mostrarContrasenia
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _mostrarContrasenia = !_mostrarContrasenia;
+                                  });
+                                },
                               ),
-                              iconColor: const Color.fromARGB(255, 39, 2, 2),
-
-                              // Borde normal (no enfocado)
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color:
-                                      Colors.grey[300]!, // borde gris clarito
+                                  color: Colors.grey[300]!,
                                   width: 1.5,
                                 ),
-                                borderRadius: BorderRadius.circular(
-                                  4,
-                                ), // radio redondeado
+                                borderRadius: BorderRadius.circular(4),
                               ),
-
-                              // Borde enfocado
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: Colors
-                                      .grey[500]!, // borde más oscuro cuando se toca
+                                  color: Colors.grey[500]!,
                                   width: 2,
                                 ),
-                                borderRadius: BorderRadius.circular(
-                                  4,
-                                ), // mismo radio que enabled
+                                borderRadius: BorderRadius.circular(4),
                               ),
-
-                              // Borde de error
                               errorBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
                                   color: Colors.red,
@@ -396,80 +396,72 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
-                            style: const TextStyle(
-                              color: Colors
-                                  .black87, // texto ingresado negro legible
-                            ),
-
-                            obscureText: true,
+                            style: const TextStyle(color: Colors.black87),
+                            obscureText: !_mostrarContrasenia,
                             validator: (value) => value!.length < 6
                                 ? 'Mínimo 6 caracteres'
                                 : null,
                           ),
+
                           const SizedBox(height: 16), //espacio
                           TextFormField(
                             controller: confirmarContrasenia,
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: Colors.white, // fondo blanco
+                              fillColor: Colors.white,
                               labelText: 'Confirmar contraseña',
-                              labelStyle: TextStyle(
-                                color: Colors
-                                    .grey[400], // etiqueta gris clarito cuando no está enfocado
+                              labelStyle: TextStyle(color: Colors.grey[400]),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _mostrarConfirmarContrasenia
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _mostrarConfirmarContrasenia =
+                                        !_mostrarConfirmarContrasenia;
+                                  });
+                                },
                               ),
-                              iconColor: const Color.fromARGB(255, 39, 2, 2),
-
-                              // Borde normal (no enfocado)
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color:
-                                      Colors.grey[300]!, // borde gris clarito
+                                  color: Colors.grey[300]!,
                                   width: 1.5,
                                 ),
-                                borderRadius: BorderRadius.circular(
-                                  4,
-                                ), // radio redondeado
+                                borderRadius: BorderRadius.circular(4),
                               ),
-
-                              // Borde enfocado
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: Colors
-                                      .grey[500]!, // borde más oscuro cuando se toca
+                                  color: Colors.grey[500]!,
                                   width: 2,
                                 ),
-                                borderRadius: BorderRadius.circular(
-                                  4,
-                                ), // mismo radio que enabled
+                                borderRadius: BorderRadius.circular(4),
                               ),
-
-                              // Borde de error
                               errorBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
+                                borderSide: const BorderSide(
                                   color: Colors.red,
                                   width: 2,
                                 ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               focusedErrorBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
+                                borderSide: const BorderSide(
                                   color: Colors.red,
                                   width: 2,
                                 ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
-                            style: const TextStyle(
-                              color: Colors
-                                  .black87, // texto ingresado negro legible
-                            ),
-
-                            obscureText: true,
+                            style: const TextStyle(color: Colors.black87),
+                            obscureText:
+                                !_mostrarConfirmarContrasenia, // cambio
                             validator: (value) => value != contrasenia.text
-                                //evaluamos que lo ingresado en el campo de confirmecion se igual  la contraseña
                                 ? 'Las contraseñas no coinciden'
                                 : null,
                           ),
+
                           const SizedBox(height: 24),
                           _cargaDeDatos
                               ? const CircularProgressIndicator()

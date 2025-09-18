@@ -249,50 +249,56 @@ class _MobileAdminHomeUserScreenState extends State<MobileAdminHomeUserScreen> {
     //const cremita = Colors.white;
     const miColor = Color(0xFF8e0b13);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: miColor,
-        title: const Text(
-          "Registro Anecdótico",
-          style: TextStyle(color: Colors.white),
+    return WillPopScope(
+      onWillPop: () async {
+        // Devuelve false para bloquear el botón "atrás"
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          backgroundColor: miColor,
+          title: const Text(
+            "Registro Anecdótico",
+            style: TextStyle(color: Colors.white),
+          ),
+          automaticallyImplyLeading: false,
+          centerTitle: true,
         ),
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          // Fila de iconos debajo del AppBar
-          Container(
-            color: miColor,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _iconoPagina(Icons.home, 0),
-                _iconoPagina(Icons.history, 1),
-                _iconoPagina(Icons.settings, 2),
-              ],
+        body: Column(
+          children: [
+            // Fila de iconos debajo del AppBar
+            Container(
+              color: miColor,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _iconoPagina(Icons.home, 0),
+                  _iconoPagina(Icons.history, 1),
+                  _iconoPagina(Icons.settings, 2),
+                ],
+              ),
             ),
-          ),
 
-          // PageView con swipe horizontal
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-              },
-              children: [
-                _paginaInicio(),
-                const HistorialScreen(), // la página de historial dentro del PageView
-                const ConfigScreen(),
-              ],
+            // PageView con swipe horizontal
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                children: [
+                  _paginaInicio(),
+                  const HistorialScreen(), // la página de historial dentro del PageView
+                  const ConfigScreen(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

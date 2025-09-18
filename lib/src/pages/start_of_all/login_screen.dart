@@ -16,6 +16,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController contrasenia = TextEditingController();
   bool _cargaDeDatos = false; //declaro la variable apagada
 
+  bool _mostrarContrasenia = false;
+
   Future<void> iniciarSesion() async {
     //esta fucion es la que se llama al iniciar sesion
     if (_formKey.currentState!.validate()) {
@@ -126,7 +128,8 @@ class _LoginScreenState extends State<LoginScreen> {
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           ),
-        ), //boton para ir a inicio o home_screen
+        ),
+        //boton para ir a inicio o home_screen
       ),
       body: Center(
         //el contenido del cuerpo se centra
@@ -264,9 +267,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 16), //espacio
                           TextFormField(
                             controller:
-                                contrasenia, // Controla el texto que el usuario ingresa (la contraseña)
-                            obscureText:
-                                true, // Oculta el texto para que no se vea la contraseña (muestra puntos)
+                                contrasenia, // Controla el texto que el usuario ingresa
+                            obscureText: !_mostrarContrasenia, // cambia
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: Colors.white, // fondo blanco
@@ -277,23 +279,34 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               iconColor: const Color.fromARGB(255, 39, 2, 2),
 
+                              // 👁 botón para mostrar/ocultar
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _mostrarContrasenia
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _mostrarContrasenia = !_mostrarContrasenia;
+                                  });
+                                },
+                              ),
+
                               // Borde normal (no enfocado)
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: Colors
-                                      .grey[400]!, // un poquito más oscuro que antes
+                                  color: Colors.grey[400]!,
                                   width: 1.5,
                                 ),
-                                borderRadius: BorderRadius.circular(
-                                  4,
-                                ), // radio consistente
+                                borderRadius: BorderRadius.circular(4),
                               ),
 
                               // Borde enfocado
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: Colors
-                                      .grey[500]!, // borde más oscuro cuando se toca
+                                  color: Colors.grey[500]!,
                                   width: 2,
                                 ),
                                 borderRadius: BorderRadius.circular(4),
@@ -315,18 +328,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
-                            style: const TextStyle(
-                              color: Colors
-                                  .black87, // texto ingresado negro legible
-                            ),
+                            style: const TextStyle(color: Colors.black87),
                             validator: (valor) {
-                              // Función que valida el texto ingresado
                               if (valor == null || valor.length < 6) {
-                                return 'Mínimo 6 caracteres'; // Si está vacío o tiene menos de 6 caracteres, devuelve este error
+                                return 'Mínimo 6 caracteres';
                               }
-                              return null; //si no devuelve null
+                              return null;
                             },
                           ),
+
                           const SizedBox(height: 24), //espacio
                           _cargaDeDatos // dice si carga de datos true muestra en indicador circular si no false muestra el boton de iniciar iniciar sesion
                               ? const CircularProgressIndicator()

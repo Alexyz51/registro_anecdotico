@@ -224,63 +224,68 @@ class _DesktopAdminHomeUserScreenState
   Widget build(BuildContext context) {
     const miColor = Color(0xFF8e0b13);
 
-    return Scaffold(
-      body: Row(
-        children: [
-          // Panel lateral
-          Container(
-            width: 250,
-            color: Theme.of(context).cardColor,
-            child: Column(
-              children: [
-                Container(
-                  color: miColor,
-                  height: 80,
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        "assets/book.png", // cambia por la ruta de tu imagen
-                        width: 32,
-                        height: 32,
-                      ),
-                      SizedBox(width: 12),
-                      Text(
-                        "Registro Anecdótico",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+    return WillPopScope(
+      onWillPop: () async {
+        // Devuelve false para bloquear el botón "atrás"
+        return false;
+      },
+      child: Scaffold(
+        body: Row(
+          children: [
+            // Panel lateral
+            Container(
+              width: 250,
+              color: Theme.of(context).cardColor,
+              child: Column(
+                children: [
+                  Container(
+                    color: miColor,
+                    height: 80,
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Image.asset(
+                          "assets/book.png", // cambia por la ruta de tu imagen
+                          width: 32,
+                          height: 32,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 12),
+                        Text(
+                          "Registro Anecdótico",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                ListTile(
-                  title: const Text("Inicio"),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.settings),
-                    onPressed: () => setState(() => selectedIndex = 5),
+                  ListTile(
+                    title: const Text("Inicio"),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: () => setState(() => selectedIndex = 5),
+                    ),
+                    onTap: () => setState(() => selectedIndex = 0),
                   ),
-                  onTap: () => setState(() => selectedIndex = 0),
-                ),
-                ListTile(
-                  title: const Text("Historial"),
-                  onTap: () => setState(() => selectedIndex = 2),
-                ),
-              ],
+                  ListTile(
+                    title: const Text("Historial"),
+                    onTap: () => setState(() => selectedIndex = 2),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          const VerticalDivider(thickness: 1, width: 1),
+            const VerticalDivider(thickness: 1, width: 1),
 
-          // Contenido principal
-          Expanded(child: _mostrarContenido()),
+            // Contenido principal
+            Expanded(child: _mostrarContenido()),
 
-          const VerticalDivider(thickness: 1, width: 1),
+            const VerticalDivider(thickness: 1, width: 1),
 
-          // Panel de historial personal
-          /*Container(
+            // Panel de historial personal
+            /*Container(
             width: 300,
             color: Colors.grey.shade200,
             padding: const EdgeInsets.all(16),
@@ -389,7 +394,8 @@ class _DesktopAdminHomeUserScreenState
               ],
             ),
           ),*/
-        ],
+          ],
+        ),
       ),
     );
   }
