@@ -27,6 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _animarSplash() async {
     // Mostrar el colegio 2 segundos
     await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
     setState(() {
       _mostrarColegio = false;
       _mostrarRegistro = true;
@@ -44,18 +45,18 @@ class _SplashScreenState extends State<SplashScreen> {
           .collection('users')
           .doc(usuario.uid)
           .get();
-      final data = doc.data();
 
-      if (data != null) {
+      if (doc.exists) {
+        final data = doc.data()!;
         final tema = data['tema'] ?? 'light';
         MyApp.of(
           context,
         )?.changeTheme(tema == 'dark' ? ThemeMode.dark : ThemeMode.light);
 
-        final rol = data['rol'] ?? '';
+        final rol = (data['rol'] ?? '').toString().toLowerCase();
         if (!mounted) return;
 
-        if (rol.toLowerCase() == 'administrador') {
+        if (rol == 'administrador') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -71,13 +72,22 @@ class _SplashScreenState extends State<SplashScreen> {
           );
         }
       } else {
+        await FirebaseAuth.instance.signOut();
+
         if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        Navigator.pushReplacementNamed(context, "login");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Tu cuenta fue eliminada por el administrador. No puedes acceder a la aplicación.",
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } else {
+      // No hay sesión → login
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -102,7 +112,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset('assets/escudo.png', width: 250, height: 250),
-                  //const SizedBox(height: 0),
                   const Text(
                     "Colegio Nacional Profesora María del Carmen Morales de Achucarro",
                     textAlign: TextAlign.center,
