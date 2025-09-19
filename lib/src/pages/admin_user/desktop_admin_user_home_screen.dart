@@ -325,7 +325,7 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
               _seccionSeleccionada = seccionesPorGrado[value!]!.first;
             });
           },
-          decoration: const InputDecoration(labelText: "Grado"),
+          decoration: const InputDecoration(labelText: "Grado o Curso"),
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(

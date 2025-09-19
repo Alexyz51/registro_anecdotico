@@ -31,6 +31,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
   void initState() {
     super.initState();
     _cargarDatosUsuario();
+
+    final myApp = MyApp.of(context);
+    if (myApp != null) {
+      setState(() {
+        darkMode = myApp.themeMode == ThemeMode.dark;
+      });
+    }
   }
 
   Future<void> _cargarDatosUsuario() async {

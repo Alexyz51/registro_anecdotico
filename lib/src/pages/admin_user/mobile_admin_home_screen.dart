@@ -499,12 +499,6 @@ class _MobileAdminHomeScreenState extends State<MobileAdminHomeScreen> {
                 ),
               ),
 
-              // Instrucciones
-              Text(
-                "Introduce el nombre, apellido, grado y sección del alumno",
-                style: const TextStyle(color: Colors.white70, fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
               const SizedBox(height: 12),
             ],
           ),

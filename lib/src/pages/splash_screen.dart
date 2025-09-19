@@ -49,9 +49,13 @@ class _SplashScreenState extends State<SplashScreen> {
       if (doc.exists) {
         final data = doc.data()!;
         final tema = data['tema'] ?? 'light';
-        MyApp.of(
-          context,
-        )?.changeTheme(tema == 'dark' ? ThemeMode.dark : ThemeMode.light);
+
+        // ✅ CAMBIO MÍNIMO: Usar WidgetsBinding para aplicar el tema
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          MyApp.of(
+            context,
+          )?.changeTheme(tema == 'dark' ? ThemeMode.dark : ThemeMode.light);
+        });
 
         final rol = (data['rol'] ?? '').toString().toLowerCase();
         if (!mounted) return;
