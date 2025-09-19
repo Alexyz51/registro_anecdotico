@@ -100,11 +100,23 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
     for (var doc in registros) {
       final data = doc.data();
+
+      // Extraer datos del alumno correctamente
+      final alumnoData = data['alumno'] ?? {};
+      final nombreAlumno = alumnoData['nombre'] ?? '';
+      final apellidoAlumno = alumnoData['apellido'] ?? '';
+      final alumnoCompleto = '$nombreAlumno $apellidoAlumno'.trim();
+
+      // Usar los datos del objeto alumno o los campos directos como fallback
+      final grado = alumnoData['grado'] ?? data['grado'] ?? '';
+      final seccion = alumnoData['seccion'] ?? data['seccion'] ?? '';
+      final nivel = alumnoData['nivel'] ?? data['nivel'] ?? '';
+
       csvData.add([
-        data['studentName'] ?? '',
-        data['grado'] ?? '',
-        data['seccion'] ?? '',
-        data['nivel'] ?? '',
+        alumnoCompleto, // ← Ahora sí tendrá el nombre completo
+        grado,
+        seccion,
+        nivel,
         data['color'] ?? '',
         data['descripcion'] ?? '',
         data['comentario'] ?? '',
@@ -134,6 +146,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
     return path;
   }
 
+  int daysUntilMonthEnd() {
+    final now = DateTime.now();
+    final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+    final difference = lastDayOfMonth.difference(now);
+    return difference.inDays;
+  }
+
   Future<void> clearAllRecords() async {
     final snapshot = await FirebaseFirestore.instance
         .collection('records')
@@ -141,13 +160,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
     for (var doc in snapshot.docs) {
       await doc.reference.delete();
     }
-  }
 
-  int daysUntilMonthEnd() {
-    final now = DateTime.now();
-    final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-    final difference = lastDayOfMonth.difference(now);
-    return difference.inDays;
+    // Opcional: mostrar mensaje de éxito
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Todos los registros han sido eliminados')),
+    );
   }
 
   @override

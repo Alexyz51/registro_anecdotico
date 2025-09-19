@@ -88,6 +88,7 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
     'No usa el uniforme correspondiente',
     'Trae objetos distractores en la institución',
     'Ausente con reposo médico',
+    'No trea sus materiales de clase',
   ];
 
   late Map<String, bool> conductasSeleccionadas;
@@ -155,8 +156,16 @@ class _ListaAlumnosScreenState extends State<ListaAlumnosScreen> {
     final usuarioActualFirebase = FirebaseAuth.instance.currentUser;
     final String uidUsuario = usuarioActualFirebase?.uid ?? 'desconocido';
 
+    final nombreAlumno = widget.alumno['nombre'] ?? '';
+    final apellidoAlumno = widget.alumno['apellido'] ?? '';
+
     final registro = {
       'studentId': widget.alumno['docId'],
+      'alumno': {
+        // NUEVO CAMPO: información del alumno
+        'nombre': nombreAlumno,
+        'apellido': apellidoAlumno,
+      },
       'fecha': DateTime.now(),
       'color': colorSeleccionado,
       'descripcion': descripcion,

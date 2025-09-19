@@ -21,6 +21,134 @@ class DesktopAdminHomeScreen extends StatefulWidget {
 }
 
 class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
+  // --- NUEVAS VARIABLES AGREGADAS ---
+  String? _cargoSeleccionado;
+  String? rolReal;
+
+  final List<String> cargos = [
+    'Docente del Área Administrativa',
+    'Docente de Lengua',
+    'Docente de Matemática',
+    'Docente de Ciencias Naturales',
+    'Docente de Historia y Geografía',
+    'Docente de Formación Ética',
+    'Docente de Educación Física',
+    'Docente de Artes',
+    'Docente de Música',
+    'Docente de Desarrollo Personal',
+    'Docente de Informática',
+    'Docente de Física y Química',
+    'Docente de Economía y Gestión',
+    'Docente de Orientación Educacional',
+  ];
+  // --- FIN NUEVAS VARIABLES ---
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatosUsuario();
+
+    // Se asegura que el diálogo se muestre después del primer frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _verificarPrimerInicio();
+    });
+  }
+
+  // --- NUEVAS FUNCIONES AGREGADAS ---
+  Future<void> _verificarPrimerInicio() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+    if (doc.exists) {
+      final data = doc.data();
+      if (data != null && data['primerInicio'] == true) {
+        _mostrarDialogoCargo();
+      }
+    }
+  }
+
+  Future<void> _cargarDatosUsuario() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+      final data = snapshot.data();
+      if (data != null) {
+        setState(() {
+          rolReal = data['rolReal'];
+        });
+      }
+    }
+  }
+
+  void _mostrarDialogoCargo() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Es tu primera vez aquí'),
+              content: DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Cargo',
+                  border: OutlineInputBorder(),
+                ),
+                isExpanded: true,
+                items: cargos.map((cargo) {
+                  return DropdownMenuItem<String>(
+                    value: cargo,
+                    child: Text(cargo, overflow: TextOverflow.ellipsis),
+                  );
+                }).toList(),
+                value: _cargoSeleccionado,
+                onChanged: (valor) {
+                  setStateDialog(() {
+                    _cargoSeleccionado = valor;
+                  });
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    if (_cargoSeleccionado == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Por favor selecciona un cargo'),
+                        ),
+                      );
+                      return;
+                    }
+                    final uid = FirebaseAuth.instance.currentUser!.uid;
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(uid)
+                        .update({
+                          'rolReal': _cargoSeleccionado,
+                          'primerInicio': false,
+                        });
+                    setState(() {
+                      rolReal = _cargoSeleccionado;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+  // --- FIN NUEVAS FUNCIONES ---
+
+  // --- CÓDIGO EXISTENTE (TODO SE MANTIENE IGUAL) ---
   int selectedIndex = 0;
 
   Widget _mostrarContenido() {
@@ -426,7 +554,7 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
                                       leading: null,
                                       title: Text("$nombre $apellido"),
                                       subtitle: Text(
-                                        "Grado: $grado - Sección: $seccion\n${registro['descripcion'] ?? ''}",
+                                        "Grado: $grado - Sección: ${seccion[0].toUpperCase() + seccion.substring(1).toLowerCase()}\n${registro['descripcion'] ?? ''}",
                                         maxLines: 3,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -450,7 +578,7 @@ class _DesktopAdminHomeScreenState extends State<DesktopAdminHomeScreen> {
   }
 }
 
-// --- RegistrarConductaDialog ---
+// --- RegistrarConductaDialog --- (TODO SE MANTIENE IGUAL)
 class RegistrarConductaDialog extends StatefulWidget {
   final Map<String, dynamic> alumno;
   final String grado;
@@ -482,35 +610,6 @@ class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
     required String nombreAlumno,
     required String apellidoAlumno,
   }) async {
-    //const String usuario = "adj37007@gmail.com"; // tu correo
-    //const String password = "anfm geng bscp erto"; // 16 dígitos de Google
-    //const String password =
-    //    "anfmgengbscperto"; // 16 dígitos de Google sin espacios
-
-    /*final smtpServer = gmail(usuario, password);
-
-    final message = Message()
-      ..from = Address(usuario, "Registro Anecdótico")
-      ..recipients.add(correoPadre)
-      ..subject = "Nuevo registro de $nombreAlumno $apellidoAlumno"
-      ..html =
-          """
-  <h2>📋 Registro de Conducta</h2>
-  <p><b>Alumno:</b> $nombreAlumno $apellidoAlumno</p>
-  <p><b>Grado:</b> ${registro['grado']} - Sección: ${registro['seccion']}</p>
-  <p><b>Clasificación:</b> ${registro['color']}</p>
-  <p><b>Descripción:</b><br>${registro['descripcion'].toString().replaceAll("\n", "<br>")}</p>
-  <p><b>Comentario:</b> ${registro['comentario'] ?? ''}</p>
-  <p><i>Registrado por: ${registro['registrado_por']}</i></p>
-""";
-
-    try {
-      final sendReport = await send(message, smtpServer);
-      print("Correo enviado: $sendReport");
-    } catch (e) {
-      print("Error al enviar correo: $e");
-    }*/
-
     const serviceId = 'service_8ynxp6q';
     const templateId = 'template_fy8y6y7';
     const userId = 'cfUozddr4CSpfzsaC';
@@ -633,8 +732,16 @@ class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
     final usuarioActualFirebase = FirebaseAuth.instance.currentUser;
     final String uidUsuario = usuarioActualFirebase?.uid ?? 'desconocido';
 
+    final nombreAlumno = widget.alumno['nombre'] ?? '';
+    final apellidoAlumno = widget.alumno['apellido'] ?? '';
+
     final registro = {
       'studentId': widget.alumno['docId'],
+      'alumno': {
+        // NUEVO CAMPO: información del alumno
+        'nombre': nombreAlumno,
+        'apellido': apellidoAlumno,
+      },
       'fecha': DateTime.now(),
       'color': colorSeleccionado,
       'descripcion': descripcion,

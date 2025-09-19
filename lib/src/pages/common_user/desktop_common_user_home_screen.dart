@@ -20,6 +20,130 @@ class DesktopAdminHomeUserScreen extends StatefulWidget {
 
 class _DesktopAdminHomeUserScreenState
     extends State<DesktopAdminHomeUserScreen> {
+  String? _cargoSeleccionado;
+  String? rolReal;
+
+  final List<String> cargos = [
+    'Docente del Área Administrativa',
+    'Docente de Lengua',
+    'Docente de Matemática',
+    'Docente de Ciencias Naturales',
+    'Docente de Historia y Geografía',
+    'Docente de Formación Ética',
+    'Docente de Educación Física',
+    'Docente de Artes',
+    'Docente de Música',
+    'Docente de Desarrollo Personal',
+    'Docente de Informática',
+    'Docente de Física y Química',
+    'Docente de Economía y Gestión',
+    'Docente de Orientación Educacional',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatosUsuario();
+
+    // Se asegura que el diálogo se muestre después del primer frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _verificarPrimerInicio();
+    });
+  }
+
+  Future<void> _verificarPrimerInicio() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+    if (doc.exists) {
+      final data = doc.data();
+      if (data != null && data['primerInicio'] == true) {
+        _mostrarDialogoCargo();
+      }
+    }
+  }
+
+  Future<void> _cargarDatosUsuario() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+      final data = snapshot.data();
+      if (data != null) {
+        setState(() {
+          rolReal = data['rolReal'];
+        });
+      }
+    }
+  }
+
+  void _mostrarDialogoCargo() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Es tu primera vez aquí'),
+              content: DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Cargo',
+                  border: OutlineInputBorder(),
+                ),
+                isExpanded: true,
+                items: cargos.map((cargo) {
+                  return DropdownMenuItem<String>(
+                    value: cargo,
+                    child: Text(cargo, overflow: TextOverflow.ellipsis),
+                  );
+                }).toList(),
+                value: _cargoSeleccionado,
+                onChanged: (valor) {
+                  setStateDialog(() {
+                    _cargoSeleccionado = valor;
+                  });
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    if (_cargoSeleccionado == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Por favor selecciona un cargo'),
+                        ),
+                      );
+                      return;
+                    }
+                    final uid = FirebaseAuth.instance.currentUser!.uid;
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(uid)
+                        .update({
+                          'rolReal': _cargoSeleccionado,
+                          'primerInicio': false,
+                        });
+                    setState(() {
+                      rolReal = _cargoSeleccionado;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // --- resto del código queda igual ---
   int selectedIndex = 0;
   final String uidActual = FirebaseAuth.instance.currentUser?.uid ?? '';
 
@@ -193,7 +317,6 @@ class _DesktopAdminHomeUserScreenState
           onChanged: (value) {
             setState(() {
               _gradoSeleccionado = value;
-              // Actualiza automáticamente la sección según el grado seleccionado
               _seccionSeleccionada = seccionesPorGrado[value!]!.first;
             });
           },
@@ -217,18 +340,14 @@ class _DesktopAdminHomeUserScreenState
     );
   }
 
-  bool mostrarRegistrosRecientes =
-      true; // variable de estado de panel de regiistros recientes
+  bool mostrarRegistrosRecientes = true;
 
   @override
   Widget build(BuildContext context) {
     const miColor = Color(0xFF8e0b13);
 
     return WillPopScope(
-      onWillPop: () async {
-        // Devuelve false para bloquear el botón "atrás"
-        return false;
-      },
+      onWillPop: () async => false,
       child: Scaffold(
         body: Row(
           children: [
@@ -244,13 +363,9 @@ class _DesktopAdminHomeUserScreenState
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        Image.asset(
-                          "assets/book.png", // cambia por la ruta de tu imagen
-                          width: 32,
-                          height: 32,
-                        ),
-                        SizedBox(width: 12),
-                        Text(
+                        Image.asset("assets/book.png", width: 32, height: 32),
+                        const SizedBox(width: 12),
+                        const Text(
                           "Registro Anecdótico",
                           style: TextStyle(
                             color: Colors.white,
@@ -276,124 +391,9 @@ class _DesktopAdminHomeUserScreenState
                 ],
               ),
             ),
-
             const VerticalDivider(thickness: 1, width: 1),
-
-            // Contenido principal
             Expanded(child: _mostrarContenido()),
-
             const VerticalDivider(thickness: 1, width: 1),
-
-            // Panel de historial personal
-            /*Container(
-            width: 300,
-            color: Colors.grey.shade200,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "📋 Mi Historial",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('records')
-                        .where(
-                          'userId',
-                          isEqualTo: FirebaseAuth.instance.currentUser?.uid,
-                        )
-                        .orderBy('fecha', descending: true)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final registros = snapshot.data!.docs;
-                      if (registros.isEmpty) {
-                        return const Center(
-                          child: Text("No tienes registros en tu historial."),
-                        );
-                      }
-
-                      return ListView.builder(
-                        itemCount: registros.length,
-                        itemBuilder: (context, index) {
-                          final registro =
-                              registros[index].data() as Map<String, dynamic>;
-                          final studentId = registro['studentId'];
-
-                          return FutureBuilder<DocumentSnapshot>(
-                            future: FirebaseFirestore.instance
-                                .collection('students')
-                                .doc(studentId)
-                                .get(),
-                            builder: (context, studentSnapshot) {
-                              if (!studentSnapshot.hasData) {
-                                return const ListTile(
-                                  title: Text("Cargando..."),
-                                );
-                              }
-                              if (!studentSnapshot.data!.exists) {
-                                return const ListTile(
-                                  title: Text("Alumno no encontrado"),
-                                );
-                              }
-
-                              final alumno =
-                                  studentSnapshot.data!.data()
-                                      as Map<String, dynamic>? ??
-                                  {};
-                              final nombre = alumno['nombre'] ?? '';
-                              final apellido = alumno['apellido'] ?? '';
-                              final grado = alumno['grado'] ?? '';
-                              final seccion = alumno['seccion'] ?? '';
-
-                              Color colorCard;
-                              switch (registro['color']) {
-                                case 'verde':
-                                  colorCard = Colors.green.shade100;
-                                  break;
-                                case 'amarillo':
-                                  colorCard = Colors.amber.shade100;
-                                  break;
-                                case 'rojo':
-                                  colorCard = Colors.red.shade100;
-                                  break;
-                                default:
-                                  colorCard = Colors.grey.shade100;
-                              }
-
-                              return Card(
-                                color: colorCard,
-                                margin: const EdgeInsets.only(bottom: 8),
-                                child: ListTile(
-                                  title: Text("$nombre $apellido"),
-                                  subtitle: Text(
-                                    "Grado: $grado - Sección: $seccion\n${registro['descripcion'] ?? ''}",
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  isThreeLine: true,
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),*/
           ],
         ),
       ),
@@ -515,7 +515,8 @@ class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
     'Llegada tardía',
     'No usa el uniforme correspondiente',
     'Trae objetos distractores en la institución',
-    'Ausente con reposo médico',
+    'Ausente con reposo médico'
+        'No trae sus materiales de clase',
   ];
 
   late Map<String, bool> conductasSeleccionadas;
@@ -583,8 +584,16 @@ class _RegistrarConductaDialogState extends State<RegistrarConductaDialog> {
     final usuarioActualFirebase = FirebaseAuth.instance.currentUser;
     final String uidUsuario = usuarioActualFirebase?.uid ?? 'desconocido';
 
+    final nombreAlumno = widget.alumno['nombre'] ?? '';
+    final apellidoAlumno = widget.alumno['apellido'] ?? '';
+
     final registro = {
       'studentId': widget.alumno['docId'],
+      'alumno': {
+        // NUEVO CAMPO: información del alumno
+        'nombre': nombreAlumno,
+        'apellido': apellidoAlumno,
+      },
       'fecha': DateTime.now(),
       'color': colorSeleccionado,
       'descripcion': descripcion,
